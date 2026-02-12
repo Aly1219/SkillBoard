@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillBoard - Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Ajout de FontAwesome pour de jolies icônes (optionnel mais recommandé) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">      
+        <!-- 1. En-tête -->
+        <header>
+            <h1>Bonjour {{ user }}</h1>
+        </header>
+
+        <!-- 2. Bouton d'action -->
+        <div class="cta-section">
+            <button class="btn-main-create">
+                Créer un entretien
+            </button>
+        </div>
+
+        <!-- 3. Deux colonnes (Postes / Compétences)-->
+        <main class="content-grid">
+            <!-- Colonne Gauche : Postes -->
+            <div class="column">
+                <div class="column-header">
+                    <h2>Postes</h2>
+                    <!-- Bouton + -->
+                    <button class="btn-circle-add" onclick=""><i class="fas fa-plus"></i></button>
+                </div>
+                <ul class="job-list">
+                    {% for job in jobs %}
+                    <li onclick="" class="list-item" id="job-{{ job.id }}">
+                        <span class="job-title">{{ job.nom }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Colonne Droite : Compétences -->
+            <div class="column">
+                <div class="column-header">
+                    <h2>Compétences</h2>
+                    <!-- Bouton + -->
+                    <button class="btn-circle-add" onclick=""><i class="fas fa-plus"></i></button>
+                </div>
+                <!-- Liste complète des compétences -->
+                <ul class="skill-list" id="skills-list-ul">
+                    {% for skill in all_skills %}
+                    <!-- On met l'ID de la compétence dans un attribut data-id pour le filtrage JS -->
+                    <li class="list-item skill-item" data-id="{{ skill.id }}">
+                        <span>{{ skill.nom }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <!-- Petit message si la liste est vide après filtrage -->
+                <p id="no-skills-msg" style="display:none; color:#777; padding:10px; font-style:italic;">
+                    Aucune compétence liée à ce poste.
+                </p>
+            </div>
+        </main>
+        <!---------------------------------------->
+        <!---------------------------------------->
+        <!---------------------------------------->
+        <!---------------------------------------->
+        <!---------------------------------------->
+        <!---------------------------------------->
+        <!---------------------------------------->
+        <!---------------------------------------->
+        <!-- 4. Tableau de suivi des entretiens -->
+        <section class="dashboard-table-section">
+            <h2>Dashboard Entretiens</h2>
+            
+            <div class="table-container">
+                <table class="dashboard-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Candidat.e</th>
+                            <th>Poste</th>
+                            <th>Statut</th>
+                            <th class="text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ent in entretiens %}
+                        <tr>
+                            <!-- 1. DATE -->
+                            <td>{{ ent.date_entretien }}</td>
+                            
+                            <!-- 2. CANDIDAT -->
+                            <td><strong>{{ ent.candidat_nom }}</strong> {{ ent.candidat_prenom }}</td>
+                            
+                            <!-- 3. POSTE -->
+                            <td>{{ ent.poste.nom }}</td>
+                            
+                            <!-- 4. STATUT -->
+                            <td>
+                                {% if ent.statut == 'Termine' %}
+                                    <span class="badge badge-success">Terminé</span>
+                                {% elif ent.statut == 'Attente_Recruteur2' %}
+                                    <span class="badge badge-warning">Attente RH2</span>
+                                {% else %}
+                                    <span class="badge badge-info">Créé</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- 5. ACTIONS -->
+                            <td class="text-right action-cell">
+                                <div style="display: flex; justify-content: flex-end; gap: 10px; align-items: center;">
+                                    
+                                    <!-- A) BOUTON PRINCIPAL (Selon statut) -->
+                                    {% if ent.statut == 'Termine' %}
+                                        <!-- Cas Terminé : Rapport PDF -->
+                                        <a href="" target="_blank" class="btn-action btn-pdf" title="Télécharger le rapport" style="color: #444;">
+                                            <i class="fas fa-file-pdf"></i> PDF
+                                        </a>
+                                    
+                                    {% elif ent.statut == 'Attente_Recruteur2' %}
+                                        <!-- Cas Attente : Lien à copier -->
+                                        <button 
+                                            class="btn-action btn-link" 
+                                            title="Copier le lien pour le 2e recruteur"
+                                            data-link=""
+                                            onclick=""
+                                            style="background:none; border:none; cursor:pointer; color:#444;">
+                                            <i class="fas fa-link"></i> Lien
+                                        </button>
+                                    
+                                    {% else %}
+                                        <!-- Cas Créé : Poursuivre l'évaluation -->
+                                        <a href="" class="btn-action" title="Poursuivre l'évaluation" style="color: #2196F3;">
+                                            <i class="fas fa-play"></i>
+                                        </a>
+                                    {% endif %}
+
+                                    <!-- B) BOUTON SUPPRIMER (Toujours là) -->
+                                    <a href="" 
+                                    class="btn-action" 
+                                    title="Supprimer cet entretien"
+                                    onclick=""
+                                    style="color: #e57373;">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center">Aucun entretien pour le moment.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        // Logique JS ici si nécessaire
+    </script>
+</body>
+</html>

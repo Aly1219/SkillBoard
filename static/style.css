@@ -1,0 +1,295 @@
+:root {
+            --primary-purple: #c065e8; /* La couleur approximative du bouton */
+            --primary-purple-hover: #b054d8;
+            --text-dark: #1a1a1a;
+            --text-grey: #888888;
+            --bg-light: #ffffff;
+            --bg-grey: #f9f9f9;
+            --radius-btn: 12px;
+            --radius-card: 16px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* 1. En-tête */
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 40px;
+            color: #222;
+        }
+
+        /* 2. Bouton d'action */
+        .cta-section {
+            margin-bottom: 60px;
+            text-align: center;
+        }
+
+        .btn-main-create {
+            display: block;
+            width: 100%;
+            background-color: #d47df5; /* Couleur violet clair */
+            background: linear-gradient(90deg, #cd76e8 0%, #c46be0 100%); /* Léger dégradé */
+            color: white;
+            border: 1px solid #a35bbd;
+            padding: 15px;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Ombre légère */
+            transition: transform 0.1s ease;
+        }
+
+        .btn-main-create:hover {
+            background-color: #c065df;
+            transform: translateY(-2px);
+        }
+
+        /* 3. Grille de contenu */
+        .content-grid {
+            display: flex;
+            justify-content: space-between;
+            gap: 50px;
+        }
+
+        .column {
+            flex: 1;
+        }
+
+        /* Header des colonnes : Titre + Bouton (+) alignés */
+        .column-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px; /* Espace entre le texte et le bouton */
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .column h2 {
+            font-size: 1rem;
+            text-transform: uppercase;
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: normal;
+            text-align: center; /* Titres centrés comme sur l'image */
+        }
+
+        .btn-circle-add {
+            background-color: #eee;
+            color: #555;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%; /* Rond parfait */
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .btn-circle-add:hover {
+            background-color: #d47df5;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* Liste des postes */
+        .job-list {
+            list-style: none;
+        }
+
+        .job-list li {
+            padding: 15px 10px;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+            color: #444;
+            /* Optionnel : fond gris très léger au survol */
+            transition: background 0.2s;
+        }
+
+        .job-list li:hover {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+
+        .job-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            transition: all 0.2s;
+        }
+
+        .job-item:hover {
+            background-color: #f0f0f0;
+            padding-left: 15px; /* Petit effet de mouvement */
+        }
+
+        .job-item.active {
+            background-color: #f3e5f5; /* Violet très clair */
+            border-left: 4px solid #d47df5;
+            font-weight: bold;
+        }
+
+        .job-service {
+            font-size: 0.8rem;
+            color: #888;
+            background: #eee;
+            padding: 2px 8px;
+            border-radius: 10px;
+            height: fit-content;
+        }
+
+        /* Zone détails compétences */
+        .details-card h3 {
+            color: #d47df5;
+            margin-bottom: 15px;
+        }
+        .details-card ul {
+            list-style-type: disc;
+            padding-left: 20px;
+        }
+        .placeholder-text {
+            color: #aaa;
+            font-style: italic;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        /* DASHBOARD TABLE */
+        .dashboard-section {
+            margin-top: 60px;
+            border-top: 1px solid #eee;
+            padding-top: 40px;
+        }
+
+        .dashboard-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .table-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            overflow: hidden; /* Pour les coins arrondis */
+            border: 1px solid #eee;
+        }
+
+        .dashboard-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .dashboard-table th, .dashboard-table td {
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .dashboard-table th {
+            background-color: #fafafa;
+            font-weight: 600;
+            color: #555;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+
+        .dashboard-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .dashboard-table tr:hover {
+            background-color: #fcfcfc;
+        }
+
+        .table-card {
+            background: var(--bg-grey); /* Fond gris très léger pour le tableau */
+            border-radius: var(--radius-card);
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        /* Badges Statut */
+        .badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .badge-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        /* Boutons d'actions */
+        .action-cell {
+            white-space: nowrap; /* Empêche les boutons de passer à la ligne */
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-left: 5px;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        /* Style bouton PDF */
+        .btn-pdf {
+            background-color: #fff;
+            border-color: #ddd;
+            color: #e74c3c; /* Rouge PDF */
+        }
+        .btn-pdf:hover {
+            background-color: #e74c3c;
+            color: white;
+            border-color: #e74c3c;
+        }
+
+        /* Style bouton Lien */
+        .btn-link {
+            background-color: #fff;
+            border-color: #ddd;
+            color: #3498db; /* Bleu Lien */
+        }
+        .btn-link:hover {
+            background-color: #3498db;
+            color: white;
+            border-color: #3498db;
+        }

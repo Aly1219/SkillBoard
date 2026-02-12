@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Initialisation - SkillBoard</title>
+</head>
+<body>
+    <h2>Bienvenue ! Créez votre compte administrateur</h2>
+    <p>Ceci est la première utilisation de l'application.</p>
+
+    <form method="POST" action="{{ url_for('main.register') }}">
+        <label>Email :</label><br>
+        <input type="email" name="email" required><br><br>
+
+        <label>Nom d'utilisateur :</label><br>
+        <input type="text" name="username" required><br><br>
+        
+        <label>Mot de passe :</label><br>
+        <input type="password" name="password" required><br><br>
+        
+        <button type="submit">Créer le compte</button>
+    </form>
+</body>
+</html>
