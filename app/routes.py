@@ -9,10 +9,19 @@ bp = Blueprint('main', __name__)
 
 # --- ROUTE D'ACCUEIL (DASHBOARD) ---
 @bp.route('/')
-@login_required # <-- Bloque l'accès si pas connecté
+@login_required
 def home():
-    # On passe current_user pour afficher "Bonjour [Nom]"
-    return render_template('index.html', user=current_user.username)
+    # 1. On récupère les données depuis la base de données
+    postes = Poste.query.order_by(Poste.nom.asc()).all()
+    all_competences = Competence.query.order_by(Competence.nom.asc()).all()
+    entretiens = Entretien.query.order_by(Entretien.id.desc()).all()
+
+    # 2. On les envoie au template
+    return render_template('index.html', 
+                           user=current_user.username,
+                           jobs=postes,           # Pour la colonne de gauche
+                           all_skills=all_competences, # Pour la colonne de droite
+                           entretiens=entretiens) # Pour le tableau du bas
 
 # --- ROUTE LOGIN ---
 @bp.route('/login', methods=['GET', 'POST'])
@@ -143,3 +152,67 @@ def add_poste():
         db.session.commit()
         
     return redirect(url_for('main.home')) # Note: main.home car on est dans un blueprint
+
+# --- ROUTE MODIFIER UN POSTE ---
+@bp.route('/update_poste', methods=['POST'])
+def update_poste():
+    # 1. Récupération des données du formulaire
+    poste_id = request.form.get('poste_id')
+    nom_poste = request.form.get('nom_poste')
+    competences_ids = request.form.getlist('competences') 
+
+    # 2. Recherche du poste dans la base de données
+    poste = Poste.query.get(poste_id)
+
+    if poste:
+        # 3. Mise à jour du nom
+        poste.nom = nom_poste
+
+        # 4. Mise à jour des compétences
+        nouvelle_liste_competences = []
+        for skill_id in competences_ids:
+            skill = Competence.query.get(int(skill_id))
+            if skill:
+                nouvelle_liste_competences.append(skill)
+        poste.competences = nouvelle_liste_competences
+
+        # 5. Sauvegarde en base
+        try:
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(f"Erreur lors de la mise à jour : {e}")
+
+    return redirect(url_for('main.home'))
+
+# --- ROUTE SUPPRIMER UN POSTE ---
+@bp.route('/api/poste/<int:poste_id>', methods=['DELETE'])
+def api_delete_poste(poste_id):
+    poste = Poste.query.get(poste_id)
+    if not poste:
+        return jsonify({'success': False, 'message': 'Poste non trouvé'}), 404
+
+    try:
+        db.session.delete(poste)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Poste supprimé', 'poste': {'id': poste.id, 'nom': poste.nom}}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': 'Erreur serveur'}), 500
+
+# --- ROUTE AJOUTER COMPETENCE ---
+@bp.route('/add_competence', methods=['POST'])
+@login_required
+def add_competence():
+    nom = request.form.get('nom_competence')
+    
+    if nom:
+        # On vérifie si la compétence existe déjà pour éviter les doublons
+        existe = Competence.query.filter_by(nom=nom).first()
+        
+        if not existe:
+            nouvelle_comp = Competence(nom=nom)
+            db.session.add(nouvelle_comp)
+            db.session.commit()
+            
+    return redirect(url_for('main.home'))

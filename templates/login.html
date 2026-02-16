@@ -1,31 +1,63 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion - SkillBoard</title>
+    <!-- Font Awesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h2>Connexion</h2>
-    
-    <!-- Affichage des messages d'erreur -->
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <ul style="color: red;">
-            {% for message in messages %}
-                <li>{{ message }}</li>
-            {% endfor %}
-            </ul>
-        {% endif %}
-    {% endwith %}
 
-    <form method="POST" action="{{ url_for('main.login') }}">
-        <label>Nom d'utilisateur :</label><br>
-        <input type="text" name="username" required><br><br>
+    <div class="login-card">
         
-        <label>Mot de passe :</label><br>
-        <input type="password" name="password" required><br><br>
-        
-        <button type="submit">Se connecter</button>
-    </form>
-    <p><a href="{{ url_for('main.reset_request') }}">Mot de passe ou nom d'utilisateur oublié ?</a></p>
+        <!-- Logo / Titre -->
+        <div class="logo-area">
+            <i class="fas fa-layer-group"></i>
+            <h1>SkillBoard</h1>
+            <p>Connectez-vous pour accéder au dashboard</p>
+        </div>
+
+        <!-- Zone de messages d'erreur -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert">
+                    <i class="fas fa-exclamation-circle"></i>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Formulaire -->
+        <form method="POST" action="{{ url_for('main.login') }}">
+            
+            <div class="input-group">
+                <label for="username">Nom d'utilisateur</label>
+                <div class="input-wrapper">
+                    <input type="text" id="username" name="username" placeholder="Entrez votre identifiant" required autofocus>
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="password">Mot de passe</label>
+                <div class="input-wrapper">
+                    <input type="password" id="password" name="password" placeholder="••••••••" required>
+                    <i class="fas fa-lock"></i>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-login">Se connecter</button>
+
+            <div class="links">
+                <a href="{{ url_for('main.reset_request') }}">Mot de passe oublié ?</a>
+            </div>
+        </form>
+    </div>
+
 </body>
 </html>

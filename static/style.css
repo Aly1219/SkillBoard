@@ -1,295 +1,582 @@
+/* --------------- VARIABLES GLOBALES --------------- */
 :root {
-            --primary-purple: #c065e8; /* La couleur approximative du bouton */
-            --primary-purple-hover: #b054d8;
-            --text-dark: #1a1a1a;
-            --text-grey: #888888;
-            --bg-light: #ffffff;
-            --bg-grey: #f9f9f9;
-            --radius-btn: 12px;
-            --radius-card: 16px;
-        }
+    --primary-purple: #c065e8;
+    --primary-purple-hover: #b054d8;
+    --bg-light: #f4f7f6;
+    --bg-white: #ffffff;
+    --text-dark: #1a1a1a;
+    --text-grey: #888888;
+    --radius-btn: 12px;
+    --radius-card: 16px;
+    --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-light);
-            color: var(--text-dark);
-            margin: 0;
-            padding: 40px;
-        }
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #ffffff;
+    color: #333;
+    padding: 40px;
+}
 
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
+/* --------------- PAGE DE CONNEXION --------------- */
+.login-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
 
-        /* 1. En-tête */
-        header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 40px;
-            color: #222;
-        }
+.login-card {
+    background: var(--bg-white);
+    padding: 40px;
+    width: 100%;
+    max-width: 400px;
+    border-radius: 20px;
+    box-shadow: var(--shadow-soft);
+    text-align: center;
+    animation: fadeIn 0.5s ease-out;
+}
 
-        /* 2. Bouton d'action */
-        .cta-section {
-            margin-bottom: 60px;
-            text-align: center;
-        }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
-        .btn-main-create {
-            display: block;
-            width: 100%;
-            background-color: #d47df5; /* Couleur violet clair */
-            background: linear-gradient(90deg, #cd76e8 0%, #c46be0 100%); /* Léger dégradé */
-            color: white;
-            border: 1px solid #a35bbd;
-            padding: 15px;
-            font-size: 1.1rem;
-            border-radius: 12px;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Ombre légère */
-            transition: transform 0.1s ease;
-        }
+.logo-area i {
+    font-size: 3rem;
+    color: var(--primary-purple);
+    margin-bottom: 10px;
+}
 
-        .btn-main-create:hover {
-            background-color: #c065df;
-            transform: translateY(-2px);
-        }
+.logo-area h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+}
 
-        /* 3. Grille de contenu */
-        .content-grid {
-            display: flex;
-            justify-content: space-between;
-            gap: 50px;
-        }
+.input-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
 
-        .column {
-            flex: 1;
-        }
+.input-wrapper {
+    position: relative;
+}
 
-        /* Header des colonnes : Titre + Bouton (+) alignés */
-        .column-header {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px; /* Espace entre le texte et le bouton */
-            margin-bottom: 30px;
-            position: relative;
-        }
+.input-wrapper i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+    transition: color 0.3s;
+}
 
-        .column h2 {
-            font-size: 1rem;
-            text-transform: uppercase;
-            color: #333;
-            margin-bottom: 30px;
-            font-weight: normal;
-            text-align: center; /* Titres centrés comme sur l'image */
-        }
+.input-wrapper input {
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    border: 2px solid #eee;
+    border-radius: 12px;
+    font-size: 1rem;
+    outline: none;
+    box-sizing: border-box;
+    transition: all 0.3s;
+}
 
-        .btn-circle-add {
-            background-color: #eee;
-            color: #555;
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%; /* Rond parfait */
-            cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
+.input-wrapper input:focus {
+    border-color: var(--primary-purple);
+}
 
-        .btn-circle-add:hover {
-            background-color: #d47df5;
-            color: white;
-            transform: scale(1.1);
-        }
+.input-wrapper input:focus + i {
+    color: var(--primary-purple);
+}
 
-        /* Liste des postes */
-        .job-list {
-            list-style: none;
-        }
+.btn-login {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--primary-purple);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+    margin-top: 10px;
+}
 
-        .job-list li {
-            padding: 15px 10px;
-            margin-bottom: 10px;
-            font-size: 0.95rem;
-            color: #444;
-            /* Optionnel : fond gris très léger au survol */
-            transition: background 0.2s;
-        }
+.btn-login:hover {
+    background-color: var(--primary-purple-hover);
+}
 
-        .job-list li:hover {
-            background-color: #f9f9f9;
-            border-radius: 5px;
-        }
+/* --------------- DASHBOARD (INDEX) --------------- */
+.dashboard-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
 
-        .job-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 15px 10px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            border-bottom: 1px solid #eee;
-            transition: all 0.2s;
-        }
+/* En-tête */
+header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 40px;
+    color: #222;
+}
 
-        .job-item:hover {
-            background-color: #f0f0f0;
-            padding-left: 15px; /* Petit effet de mouvement */
-        }
+/* Bouton déconnexion */
+.btn-logout {
+    color: #ccc;
+    font-size: 1.5rem;
+    text-decoration: none;
+    transition: color 0.3s;
+}
 
-        .job-item.active {
-            background-color: #f3e5f5; /* Violet très clair */
-            border-left: 4px solid #d47df5;
-            font-weight: bold;
-        }
+.btn-logout:hover {
+    color: #2196F3;
+}
 
-        .job-service {
-            font-size: 0.8rem;
-            color: #888;
-            background: #eee;
-            padding: 2px 8px;
-            border-radius: 10px;
-            height: fit-content;
-        }
+/* Bouton créer entretien */
+.cta-section {
+    margin-bottom: 60px;
+    text-align: center;
+}
 
-        /* Zone détails compétences */
-        .details-card h3 {
-            color: #d47df5;
-            margin-bottom: 15px;
-        }
-        .details-card ul {
-            list-style-type: disc;
-            padding-left: 20px;
-        }
-        .placeholder-text {
-            color: #aaa;
-            font-style: italic;
-            text-align: center;
-            margin-top: 50px;
-        }
+.btn-main-create {
+    display: block;
+    width: 100%;
+    background-color: #d47df5;
+    background: linear-gradient(90deg, #cd76e8 0%, #c46be0 100%);
+    color: white;
+    border: 1px solid #a35bbd;
+    padding: 15px;
+    font-size: 1.1rem;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.1s ease;
+}
 
-        /* DASHBOARD TABLE */
-        .dashboard-section {
-            margin-top: 60px;
-            border-top: 1px solid #eee;
-            padding-top: 40px;
-        }
+.btn-main-create:hover {
+    background-color: #c065df;
+    transform: translate(-2px);
+}
 
-        .dashboard-section h2 {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            color: #333;
-        }
+/* Colonnes de contenu {Postes / Compétences} */
+.content-grid {
+    display: flex;
+    justify-content: space-between;
+    gap: 50px;
+}
 
-        .table-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            overflow: hidden; /* Pour les coins arrondis */
-            border: 1px solid #eee;
-        }
+.column { 
+    flex: 1; 
+}
 
-        .dashboard-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+.column-header {
+    display: flex;
+    justify-content: center; /* Centre le tout */
+    align-items: center;
+    gap: 15px; /* Espace entre le texte et le bouton */
+    margin-bottom: 30px;
+    position: relative;
+}
 
-        .dashboard-table th, .dashboard-table td {
-            padding: 15px 20px;
-            text-align: left;
-            border-bottom: 1px solid #f0f0f0;
-        }
+.column header {
+    margin-bottom: 0px;
+}
 
-        .dashboard-table th {
-            background-color: #fafafa;
-            font-weight: 600;
-            color: #555;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-        }
+/* Bouton ajouter (un poste ou une compétence) */
+.btn-icon-add {
+    background-color: #eee;
+    color: #555;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
 
-        .dashboard-table tr:last-child td {
-            border-bottom: none;
-        }
+.btn-icon-add:hover {
+    background-color: #d47df5;
+    color: white;
+    transform: scale(1.1);
+}
 
-        .dashboard-table tr:hover {
-            background-color: #fcfcfc;
-        }
+/* Liste des postes */
+.job-list {
+    list-style: none;
+}
 
-        .table-card {
-            background: var(--bg-grey); /* Fond gris très léger pour le tableau */
-            border-radius: var(--radius-card);
-            padding: 20px;
-            overflow-x: auto;
-        }
+.job-list li {
+    padding: 15px 10px;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+    color: #444;
+    transition: background 0.2s;
+}
 
-        /* Badges Statut */
-        .badge {
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
+.job-list li:hover {
+    background-color: #f9f9f9;
+    border-radius: 5px;
+}
 
-        .badge-success {
-            background-color: #d4edda;
-            color: #155724;
-        }
+.list-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    transition: all 0.2s;
+}
 
-        .badge-warning {
-            background-color: #fff3cd;
-            color: #856404;
-        }
+.list-item:hover {
+    background-color: #f0f0f0;
+    padding-left: 15px;
+}
 
-        .badge-info {
-            background-color: #d1ecf1;
-            color: #0c5460;
-        }
-        
-        /* Boutons d'actions */
-        .action-cell {
-            white-space: nowrap; /* Empêche les boutons de passer à la ligne */
-        }
+.list-item.active {
+    background-color: #f3e5f5;
+    border-left: 4px solid #d47df5;
+    font-weight: bold;
+}
 
-        .btn-action {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 6px 12px;
-            border-radius: 5px;
-            text-decoration: none;
-            font-size: 0.9rem;
-            margin-left: 5px;
-            transition: all 0.2s;
-            cursor: pointer;
-            border: 1px solid transparent;
-        }
+.list-service {
+    font-size: 0.8rem;
+    color: #888;
+    background: #eee;
+    padding: 2px 8px;
+    border-radius: 10px;
+    height: fit-content;
+}
 
-        /* Style bouton PDF */
-        .btn-pdf {
-            background-color: #fff;
-            border-color: #ddd;
-            color: #e74c3c; /* Rouge PDF */
-        }
-        .btn-pdf:hover {
-            background-color: #e74c3c;
-            color: white;
-            border-color: #e74c3c;
-        }
+/* Zone détails compétences */
+.skills-table h3 {
+    color: #d47df5;
+    margin-bottom: 15px;
+}
+.skill-list li {
+    list-style-type: disc;
+    padding-left: 20px;
+}
+.placeholder-text {
+    color: #aaa;
+    font-style: italic;
+    text-align: center;
+    margin-top: 50px;
+}
 
-        /* Style bouton Lien */
-        .btn-link {
-            background-color: #fff;
-            border-color: #ddd;
-            color: #3498db; /* Bleu Lien */
-        }
-        .btn-link:hover {
-            background-color: #3498db;
-            color: white;
-            border-color: #3498db;
-        }
+/* Style commun pour les éléments de liste (Postes et Compétences) */
+.skill-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.skill-item:hover {
+    background-color: #f9f9f9;
+}
+
+.skill-item.active {
+    background-color: #e3f2fd;
+    font-weight: bold;
+    border-left: 4px solid #2196F3;
+}
+
+/* Le bouton Edit discret (Ghost button) */
+.btn-ghost {
+    background: transparent;
+    border: none;
+    color: #ccc;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 0.9rem;
+    transition: color 0.2s, transform 0.2s;
+}
+
+.btn-ghost:hover {
+    color: #555;
+    transform: scale(1.1);
+}
+
+/* Fixer la hauteur des zones de liste */
+/* si ça dépasse, on scroll */
+.job-list, 
+.skill-list {
+    height: 150px; 
+    overflow-y: auto;
+    margin-top: 10px;
+    padding: 0;
+}
+
+/* Tableau d'historique des entretiens */
+.dashboard-table-section {
+    margin-top: 60px;
+    border-top: 1px solid #eee;
+    padding-top: 40px;
+}
+
+.dashboard-table-section h2 {
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    color: #333;
+}
+.table-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    overflow: hidden;
+    border: 1px solid #eee;
+}
+
+.dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.dashboard-table th, .dashboard-table td {
+    padding: 15px 20px;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.dashboard-table th {
+    background-color: #fafafa;
+    font-weight: 600;
+    color: #555;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+.dashboard-table tr:last-child td {
+    border-bottom: none;
+}
+
+.dashboard-table tr:hover {
+    background-color: #fcfcfc;
+}
+
+/* Badges de Statut */
+.badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.badge-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.badge-warning {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.badge-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+/* Boutons d'actions */
+.action-cell {
+    white-space: nowrap; /* Empêche les boutons de passer à la ligne */
+}
+
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-left: 5px;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+/* Style bouton PDF */
+.btn-pdf {
+    background-color: #fff;
+    border-color: #ddd;
+    color: #e74c3c;
+}
+.btn-pdf:hover {
+    background-color: #e74c3c;
+    color: white;
+    border-color: #e74c3c;
+}
+
+/* Style bouton Lien */
+.btn-link {
+    background-color: #fff;
+    border-color: #ddd;
+    color: #3498db;
+}
+.btn-link:hover {
+    background-color: #3498db;
+    color: white;
+    border-color: #3498db;
+}
+
+/* --- MODALES --- */
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 100; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto; 
+    padding: 30px;
+    border: 1px solid #888;
+    width: 500px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.large-modal {
+    width: 600px;
+    max-width: 95%;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover { color: black; }
+
+/* Formulaire */
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+.form-group input[type="text"], .form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.checkbox-group {
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 10px;
+}
+.checkbox-group label {
+    font-weight: normal;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.btn-submit {
+    background-color: #333;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 1rem;
+}
+.btn-submit:hover { background-color: #555; }
+
+/* Style de formulaires avancés */
+
+fieldset {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+}
+
+legend {
+    padding: 0 10px;
+    font-weight: bold;
+    color: #666;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+
+.form-group.half {
+    flex: 1;
+}
+
+/* Style du Récapitulatif */
+.recap-box {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.recap-box h3 {
+    font-size: 1rem;
+    color: #d47df5;
+    margin-bottom: 10px;
+    margin-top: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+.recap-box h3:first-child { margin-top: 0; }
+
+.recap-box p {
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+/* Groupe de boutons (Retour / Confirmer) */
+.btn-group {
+    display: flex;
+    gap: 15px;
+}
+
+.btn-secondary {
+    background-color: #ccc;
+    color: #333;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    flex: 1;
+}
+
+.btn-confirm {
+    background-color: #28a745; /* Vert pour la validation */
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    flex: 2; /* Plus large que le bouton retour */
+    font-weight: bold;
+}
+
+.btn-confirm:hover { background-color: #218838; }
+.btn-secondary:hover { background-color: #bbb; }
