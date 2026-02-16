@@ -175,7 +175,7 @@
             <form action="/add_poste" method="POST">
                 <div class="form-group">
                     <label>Nom du poste</label>
-                    <input type="text" name="nom_poste" required placeholder="Ex: Développeur Senior">
+                    <input type="text" name="nom_poste" required placeholder="Ex: Secrétaire">
                 </div>
                 <!-- On réutilise la liste des compétences existantes -->
                 <div class="form-group">
@@ -201,7 +201,7 @@
             <form action="/add_competence" method="POST">
                 <div class="form-group">
                     <label>Nom de la compétence</label>
-                    <input type="text" name="nom_competence" required placeholder="Ex: Excel, Anglais B2, Rédaction...">
+                    <input type="text" name="nom_competence" required placeholder="Ex: Excel, Français parlé, Français écrit...">
                 </div>
                 <button type="submit" class="btn-submit">Ajouter la compétence</button>
             </form>
@@ -213,7 +213,7 @@
         <div class="modal-content large-modal">
             <span class="close" onclick="closeModal('modalInterview')">&times;</span>
             
-            <form id="interviewForm" action="" method="POST">
+            <form id="interviewForm" action="/create_interview" method="POST">
                 <!-- ÉTAPE 1 : LE FORMULAIRE -->
                 <div id="interview-step-1">
                     <h2>Créer un nouvel entretien</h2>
@@ -334,11 +334,11 @@
             const modal = document.getElementById(modalId);
             if (modal) modal.style.display = "flex";
         }
-
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
             if (modal) modal.style.display = "none";
         }
+
 
         // Fermer si on clique sur le fond gris
         window.onclick = function(event) {

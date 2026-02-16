@@ -18,15 +18,17 @@ body {
     padding: 40px;
 }
 
-/* --------------- PAGE DE CONNEXION --------------- */
-.login-body {
+/* --------------- PAGE DE LOGIN / REGISTER --------------- */
+.auth-body {
     display: flex;
     align-items: center;
     justify-content: center;
     height: 100vh;
+    padding: 20px;
+    margin: 0;
 }
 
-.login-card {
+.auth-card {
     background: var(--bg-white);
     padding: 40px;
     width: 100%;
@@ -42,10 +44,20 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-.logo-area i {
-    font-size: 3rem;
-    color: var(--primary-purple);
-    margin-bottom: 10px;
+.logo-area{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.app-logo{
+  width: 120px;
+  max-width: 70%;
+  height: auto;
+  display: block;
 }
 
 .logo-area h1 {
@@ -109,13 +121,31 @@ body {
     background-color: var(--primary-purple-hover);
 }
 
+.hint{
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  align-items: center;
+  color: #6b7280;
+  margin-top: 14px;
+  font-size: .92rem;
+  text-align: left;
+}
+
 /* --------------- DASHBOARD (INDEX) --------------- */
 .dashboard-container {
     max-width: 1000px;
     margin: 0 auto;
 }
 
-/* En-tête */
+/* En-tête (titre + bouton déconnexion) */
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
 header h1 {
     font-size: 2.5rem;
     font-weight: 700;
@@ -123,7 +153,6 @@ header h1 {
     color: #222;
 }
 
-/* Bouton déconnexion */
 .btn-logout {
     color: #ccc;
     font-size: 1.5rem;
@@ -174,9 +203,9 @@ header h1 {
 
 .column-header {
     display: flex;
-    justify-content: center; /* Centre le tout */
+    justify-content: center;
     align-items: center;
-    gap: 15px; /* Espace entre le texte et le bouton */
+    gap: 15px;
     margin-bottom: 30px;
     position: relative;
 }
@@ -312,7 +341,7 @@ header h1 {
 /* si ça dépasse, on scroll */
 .job-list, 
 .skill-list {
-    height: 150px; 
+    height: 200px; 
     overflow-y: auto;
     margin-top: 10px;
     padding: 0;

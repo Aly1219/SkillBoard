@@ -1,23 +1,50 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>Initialisation - SkillBoard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Initialisation - SkillBoard</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
-    <h2>Bienvenue ! Créez votre compte administrateur</h2>
-    <p>Ceci est la première utilisation de l'application.</p>
+
+<body class="auth-body">
+
+  <div class="auth-card">
+    <div class="logo-area">
+      <img src="{{ url_for('static', filename='img/logo.png') }}" alt="SkillBoard" class="app-logo">
+      <h1>Initialisation</h1>
+      <p>Première utilisation : créez le compte administrateur.</p>
+    </div>
 
     <form method="POST" action="{{ url_for('main.register') }}">
-        <label>Email :</label><br>
-        <input type="email" name="email" required><br><br>
 
-        <label>Nom d'utilisateur :</label><br>
-        <input type="text" name="username" required><br><br>
-        
-        <label>Mot de passe :</label><br>
-        <input type="password" name="password" required><br><br>
-        
-        <button type="submit">Créer le compte</button>
+      <div class="input-group">
+        <label for="username">Nom d'utilisateur</label>
+        <div class="input-wrapper">
+          <input id="username" type="text" name="username" placeholder="admin" required>
+          <i class="fas fa-user"></i>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label for="password">Mot de passe</label>
+        <div class="input-wrapper">
+          <input id="password" type="password" name="password" placeholder="••••••••••••" required>
+          <i class="fas fa-lock"></i>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-login">Créer le compte</button>
+
+      <div class="hint">
+        <i class="fas fa-shield-halved"></i>
+        <span>Ce compte aura les droits administrateur.</span>
+      </div>
     </form>
+  </div>
+
 </body>
 </html>

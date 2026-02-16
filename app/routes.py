@@ -1,8 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from app.extensions import db
-from app.models import User, Poste, Competence, Entretien
-from app.utils import send_reset_email
+from app.models import User, Poste, Competence, Entretien, Evaluation
 
 # On définit un blueprint nommé 'main'
 bp = Blueprint('main', __name__)
@@ -19,9 +18,9 @@ def home():
     # 2. On les envoie au template
     return render_template('index.html', 
                            user=current_user.username,
-                           jobs=postes,           # Pour la colonne de gauche
-                           all_skills=all_competences, # Pour la colonne de droite
-                           entretiens=entretiens) # Pour le tableau du bas
+                           jobs=postes,
+                           all_skills=all_competences,
+                           entretiens=entretiens)
 
 # --- ROUTE LOGIN ---
 @bp.route('/login', methods=['GET', 'POST'])
@@ -57,17 +56,11 @@ def register():
         return redirect(url_for('main.login'))
 
     if request.method == 'POST':
-        email = request.form.get('email')
         username = request.form.get('username')
         password = request.form.get('password')
 
-        # Vérifier si l'user existe déjà (double sécurité)
-        if User.query.filter_by(email=email).first():
-            flash('Cet email est déjà utilisé.')
-            return redirect(url_for('main.register'))
-
         # Création du nouvel utilisateur
-        new_user = User(email=email, username=username)
+        new_user = User(username=username)
         new_user.set_password(password) # Hachage du mot de passe
         
         db.session.add(new_user)
@@ -85,45 +78,6 @@ def register():
 def logout():
     logout_user()
     return redirect(url_for('main.login'))
-
-# --- ROUTE RÉINITIALISATION (Formulaire Email) ---
-@bp.route('/reset_password', methods=['GET', 'POST'])
-def reset_request():
-    if current_user.is_authenticated:
-        return redirect(url_for('main.home'))
-        
-    if request.method == 'POST':
-        email = request.form.get('email')
-        user = User.query.filter_by(email=email).first()
-        if user:
-            send_reset_email(user)
-            flash('Un email a été envoyé avec les instructions.')
-            return redirect(url_for('main.login'))
-        else:
-            flash('Aucun compte trouvé avec cet email.')
-            
-    return render_template('reset_request.html')
-
-# --- ROUTE RÉINITIALISATION (Formulaire Email) ---
-@bp.route('/reset_password/<token>', methods=['GET', 'POST'])
-def reset_token(token):
-    if current_user.is_authenticated:
-        return redirect(url_for('main.home'))
-        
-    user = User.verify_reset_token(token)
-    if not user:
-        flash('Le lien est invalide ou a expiré.')
-        return redirect(url_for('main.reset_request'))
-        
-    if request.method == 'POST':
-        password = request.form.get('password')
-        if password:
-            user.set_password(password)
-            db.session.commit()
-            flash('Votre mot de passe a été mis à jour ! Vous pouvez vous connecter.')
-            return redirect(url_for('main.login'))
-            
-    return render_template('reset_token.html')
 
 # --- ROUTE POSTES EXISTANTS ---
 @bp.route('/api/poste/<int:poste_id>')
@@ -216,3 +170,42 @@ def add_competence():
             db.session.commit()
             
     return redirect(url_for('main.home'))
+
+# --- ROUTE CREATION D'ENTRETIEN ---
+@bp.route('/create_interview', methods=['POST'])
+def create_interview():
+    # Récupération des données du formulaire
+    nom = request.form.get('cand_nom')
+    prenom = request.form.get('cand_prenom')
+    date = request.form.get('entr_date')
+    recruteur2 = request.form.get('entr_recruteur')
+    poste_nom = request.form.get('entr_poste')
+    
+    # Trouver le poste correspondant (pour lier les compétences)
+    poste = Poste.query.filter_by(nom=poste_nom).first()
+    
+    if poste:
+        nouvel_entretien = Entretien(
+            candidat_nom=nom,
+            candidat_prenom=prenom,
+            date_entretien=date,
+            recruteur_secondaire=recruteur2,
+            poste=poste
+        )
+        db.session.add(nouvel_entretien)
+        db.session.flush() # Pour générer l'ID de l'entretien tout de suite
+        # 2. SNAPSHOT : On crée immédiatement les lignes d'évaluation vides
+        # Ainsi, si le poste change demain, cet entretien garde CES compétences-là.
+        for competence in poste.competences:
+            nouvelle_eval = Evaluation(
+                entretien_id=nouvel_entretien.id,
+                competence_id=competence.id,
+            )
+            db.session.add(nouvelle_eval)
+        db.session.commit()
+        
+        # Redirection vers la nouvelle page avec l'ID de l'entretien
+        return redirect(url_for('page_evaluation', entretien_id=nouvel_entretien.id))
+    
+    return redirect(url_for('main.home'))
+

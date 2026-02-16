@@ -9,28 +9,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
+<body class="auth-body">
 
-    <div class="login-card">
+    <div class="auth-card">
         
         <!-- Logo / Titre -->
         <div class="logo-area">
-            <i class="fas fa-layer-group"></i>
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="SkillBoard" class="app-logo">
             <h1>SkillBoard</h1>
             <p>Connectez-vous pour accéder au dashboard</p>
         </div>
-
-        <!-- Zone de messages d'erreur -->
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                {% for message in messages %}
-                <div class="alert">
-                    <i class="fas fa-exclamation-circle"></i>
-                    {{ message }}
-                </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
 
         <!-- Formulaire -->
         <form method="POST" action="{{ url_for('main.login') }}">
@@ -52,10 +40,6 @@
             </div>
 
             <button type="submit" class="btn-login">Se connecter</button>
-
-            <div class="links">
-                <a href="{{ url_for('main.reset_request') }}">Mot de passe oublié ?</a>
-            </div>
         </form>
     </div>
 

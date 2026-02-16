@@ -44,26 +44,7 @@ class Evaluation(db.Model):
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
-    email = db.Column(db.String(150), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
-
-    def get_reset_token(self, expires_sec=1800):
-        """Génère un token valide 30 minutes (1800 sec)"""
-        payload = {
-            'user_id': self.id,
-            'exp': time.time() + expires_sec
-        }
-        return jwt.encode(payload, current_app.config['SECRET_KEY'], algorithm='HS256')
-    
-    @staticmethod
-    def verify_reset_token(token):
-        """Vérifie le token et retourne l'user associé"""
-        try:
-            payload = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
-            user_id = payload['user_id']
-            return User.query.get(user_id)
-        except:
-            return None
 
     def set_password(self, password):
         """Crée le hash du mot de passe"""
