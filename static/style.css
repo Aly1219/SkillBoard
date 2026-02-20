@@ -153,14 +153,14 @@ header h1 {
     color: #222;
 }
 
-.btn-logout {
+.btn-go-back {
     color: #ccc;
     font-size: 1.5rem;
     text-decoration: none;
     transition: color 0.3s;
 }
 
-.btn-logout:hover {
+.btn-go-back:hover {
     color: #2196F3;
 }
 
@@ -386,6 +386,10 @@ header h1 {
     font-size: 0.85rem;
 }
 
+.dashboard-table th.action-col {
+    text-align: center;
+}
+
 .dashboard-table tr:last-child td {
     border-bottom: none;
 }
@@ -420,12 +424,17 @@ header h1 {
 
 /* Boutons d'actions */
 .action-cell {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
     white-space: nowrap; /* Empêche les boutons de passer à la ligne */
 }
 
 .btn-action {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 5px;
     padding: 6px 12px;
     border-radius: 5px;
@@ -435,6 +444,7 @@ header h1 {
     transition: all 0.2s;
     cursor: pointer;
     border: 1px solid transparent;
+    background: transparent;
 }
 
 /* Style bouton PDF */
@@ -609,3 +619,133 @@ legend {
 
 .btn-confirm:hover { background-color: #218838; }
 .btn-secondary:hover { background-color: #bbb; }
+
+/* --------------- PAGE DE CREATION D'ENTRETIEN --------------- */
+.page-evaluation body {
+    background-color: #ffffff;
+}
+
+/* Bloc d'infos candidat */
+.info-block {
+    margin-bottom: 50px;
+    line-height: 1.8;
+    color: #333;
+    font-size: 1rem;
+}
+
+.info-block strong {
+    font-weight: 500; /* Un peu moins gras que bold standard */
+    color: #000;
+}
+
+.instructions {
+    margin-bottom: 50px;
+    line-height: 1.5;
+    color: #333;
+    font-size: 1rem;
+}
+
+.instructions ul {
+    margin-left: 20px;
+}
+
+.section-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 30px;
+    color: #222;
+}
+
+/* Tableau */
+.table-wrapper {
+    margin-bottom: 40px;
+}
+
+.skills-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.skills-table th {
+    padding-bottom: 20px;
+    font-weight: bold;
+    font-size: 1rem;
+    color: #222;
+    border-bottom: 1px solid transparent;
+}
+
+.skills-table td {
+    padding: 15px 0;
+    color: #444;
+}
+
+.text-left { text-align: left; }
+.text-center { text-align: center; }
+
+/* Inputs dans le tableau (Palier / Pondération) */
+.input-number {
+    width: 50px;
+    padding: 8px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+/* Bouton Confirmer + Go-back (style géré en haut dans Dashboard.header) */
+.actions-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.btn-white-confirm {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    color: #333;
+    padding: 10px 25px;
+    font-size: 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: all 0.2s;
+}
+
+.btn-white-confirm:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-color: #ccc;
+}
+
+/* --------------- PAGE DE VOTES --------------- */
+
+.rating-bar {
+    height: 40px;
+    border-radius: 8px;
+    background: linear-gradient(
+        to right,
+        #e74c3c,
+        #f39c12,
+        #f1c40f,
+        #2ecc71
+    );
+    margin-top: 12px;
+    margin-bottom: 50px;
+    position: relative;
+}
+
+.rating-numbers {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    height: 100%;
+}
+
+.rating-numbers span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: #fff;
+}
+

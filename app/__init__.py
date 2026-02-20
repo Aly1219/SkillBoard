@@ -2,6 +2,7 @@ from flask import Flask
 from app.utils import resource_path
 from app.extensions import db, login_manager
 from config import Config
+from .extensions import cache
 from app.models import User
 
 
@@ -13,13 +14,18 @@ def create_app():
     app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
     app.config.from_object(Config)
 
+    app.config.update(
+        CACHE_TYPE="SimpleCache",
+        CACHE_DEFAULT_TIMEOUT=3600,
+    )
+    cache.init_app(app)
+
     # Initialisation des extensions
     db.init_app(app)
 
     # --- Config Flask Login ---
     login_manager.init_app(app)
     login_manager.login_view = 'main.login' # Redirection si utilisateur non connecté
-    login_manager.login_message = "Veuillez vous connecter pour accéder à cette page"
 
     # Enregistrement des Blueprints (les routes)
     from app.routes import bp as main_bp

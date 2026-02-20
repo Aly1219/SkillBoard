@@ -1,7 +1,12 @@
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, send_file, abort
 from flask_login import login_user, logout_user, login_required, current_user
-from app.extensions import db
+from app.extensions import db, cache
 from app.models import User, Poste, Competence, Entretien, Evaluation
+from datetime import datetime
+import uuid
+import app.calculs as calculs
+import app.pdf as pdf
+import io # permet de gérer des flux d'E/S, pour écrire avec des données en byte(str). 
 
 # On définit un blueprint nommé 'main'
 bp = Blueprint('main', __name__)
@@ -171,7 +176,7 @@ def add_competence():
             
     return redirect(url_for('main.home'))
 
-# --- ROUTE CREATION D'ENTRETIEN ---
+# --- ROUTE TRAITEMENT DU FORMULAIRE DE CREATION D'ENTRETIEN ---
 @bp.route('/create_interview', methods=['POST'])
 def create_interview():
     # Récupération des données du formulaire
@@ -205,7 +210,189 @@ def create_interview():
         db.session.commit()
         
         # Redirection vers la nouvelle page avec l'ID de l'entretien
-        return redirect(url_for('page_evaluation', entretien_id=nouvel_entretien.id))
+        return redirect(url_for('main.page_evaluation', entretien_id=nouvel_entretien.id))
     
     return redirect(url_for('main.home'))
 
+# --- ROUTE VERS PARAMETRAGE D'ENTRETIEN ---
+@bp.route('/entretien/<int:entretien_id>')
+def page_evaluation(entretien_id):
+    entretien = Entretien.query.get_or_404(entretien_id)
+    user_name = current_user.username
+    
+    # Dictionnaire de traduction des mois
+    mois_fr = {
+        1: "janvier", 2: "février", 3: "mars", 4: "avril",
+        5: "mai", 6: "juin", 7: "juillet", 8: "août",
+        9: "septembre", 10: "octobre", 11: "novembre", 12: "décembre"
+    }
+
+    date_affichee = entretien.date_entretien # Valeur par défaut au cas où
+    
+    try:
+        # On convertit la string "2026-01-31" en objet date
+        date_obj = datetime.strptime(entretien.date_entretien, '%Y-%m-%d')
+        
+        # On construit la chaîne manuellement : "31" + " " + "janvier" + " " + "2026"
+        nom_mois = mois_fr[date_obj.month]
+        date_affichee = f"{date_obj.day} {nom_mois} {date_obj.year}"
+        
+    except ValueError:
+        # Si le format en base n'est pas bon, on garde l'original
+        pass
+
+    return render_template('creation_entretien.html', 
+                           entretien=entretien, 
+                           user=user_name, 
+                           date_formatted=date_affichee)
+
+# --- ROUTE POUR SUPPRIMER L'ENTRETIEN ---
+@bp.route('/delete_interview/<int:entretien_id>', methods=['POST'])
+@login_required
+def delete_interview(entretien_id):
+    entretien = Entretien.query.get(entretien_id)
+    if entretien is None:
+        flash("Entretien non trouvé", "error")
+        return redirect(url_for('main.home'))  # ajuste selon ta route home
+
+    try:
+        # Suppression des évaluations liées
+        Evaluation.query.filter_by(entretien_id=entretien_id).delete()
+        db.session.delete(entretien)
+        db.session.commit()
+        flash("Entretien supprimé", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash("Échec suppression", "error")
+    return redirect(url_for('main.home'))
+
+# --- ROUTE ENREGISTRE LES PARAMETRES D'ENTRETIEN ---
+@bp.route('/start_vote/<int:entretien_id>', methods=['POST'])
+def start_vote(entretien_id):
+    entretien = Entretien.query.get_or_404(entretien_id)
+
+    # 1) Figer les compétences (snapshot) -> créer les Evaluation manquantes
+    existing = {e.competence_id for e in entretien.evaluations}
+    for skill in entretien.poste.competences:
+        if skill.id not in existing:
+            db.session.add(Evaluation(
+                entretien_id=entretien.id,
+                competence_id=skill.id
+            ))
+
+    # 2) Changer le statut
+    entretien.statut = "Attente_RH"
+
+    db.session.commit()
+
+    return redirect(url_for('main.page_vote_rh', entretien_id=entretien.id))
+
+# --- CREATION DE LA PAGE VOTE_RH ---
+@bp.route('/vote_rh/<int:entretien_id>')
+def page_vote_rh(entretien_id):
+    entretien = Entretien.query.get_or_404(entretien_id)
+    user_name = current_user.username
+
+    entretien.statut = "Attente_RH"
+    db.session.commit()
+
+    # Dictionnaire de traduction des mois
+    mois_fr = {
+        1: "janvier", 2: "février", 3: "mars", 4: "avril",
+        5: "mai", 6: "juin", 7: "juillet", 8: "août",
+        9: "septembre", 10: "octobre", 11: "novembre", 12: "décembre"
+    }
+
+    date_affichee = entretien.date_entretien # Valeur par défaut au cas où
+    
+    try:
+        # On convertit la string "2026-01-31" en objet date
+        date_obj = datetime.strptime(entretien.date_entretien, '%Y-%m-%d')
+
+        nom_mois = mois_fr[date_obj.month]
+        date_affichee = f"{date_obj.day} {nom_mois} {date_obj.year}"
+        
+    except ValueError:
+        # Si le format en base n'est pas bon, on garde l'original
+        pass
+
+    return render_template('voteRH.html', 
+                        entretien=entretien, 
+                        user=user_name, 
+                        date_formatted=date_affichee)
+
+# --- SAUVEGARDE DU VOTE RH ---
+@bp.route('/save_vote_rh/<int:entretien_id>', methods=['POST'])
+def save_vote_rh(entretien_id):
+    entretien = Entretien.query.get_or_404(entretien_id)
+
+    # MAJ des évaluations existantes (snapshot)
+    for ev in entretien.evaluations:
+        val = request.form.get(f'vote_{ev.competence_id}')
+        if val:
+            ev.note_rh = int(val)
+
+    token = str(uuid.uuid4())
+    entretien.token_recruteur2 = token
+    entretien.statut = "Attente_Recruteur2"
+
+    lien_guest = url_for('main.vote_guest', token=token, _external=True)
+
+    db.session.commit()
+    return redirect(url_for('main.home'))
+
+# --- CREATION DE LA PAGE VOTE_GUEST ---
+@bp.route('/vote_guest/<token>')
+def vote_guest(token):
+    entretien = Entretien.query.filter_by(token_recruteur2=token).first_or_404()
+    
+    if entretien.statut == "Termine":
+        return "Cet entretien est déjà clôturé."
+    
+    existing = {e.competence_id for e in entretien.evaluations}
+    for skill in entretien.poste.competences:
+        if skill.id not in existing:
+            db.session.add(Evaluation(entretien_id=entretien.id, competence_id=skill.id))
+    db.session.commit()
+
+    return render_template('voteGuest.html', entretien=entretien, token=token)
+
+# --- SAUVEGARDE DU VOTE GUEST ---
+@bp.route('/save_vote_guest/<token>', methods=['POST'])
+def save_vote_guest(token):
+    entretien = Entretien.query.filter_by(token_recruteur2=token).first_or_404()
+    
+    # 1. Enregistrement des notes du 2ème recruteur
+    for evaluation in entretien.evaluations:
+        valeur_vote = request.form.get(f'vote_{evaluation.competence_id}')
+        
+        if valeur_vote:
+            evaluation.note_recruteur2 = int(valeur_vote)
+    
+    entretien.statut = "Termine"
+    entretien.token_recruteur2 = None  # <-- invalide le lien
+    db.session.commit()
+
+    return f"""
+    <div style="text-align:center; margin-top:50px; font-family:sans-serif;">
+        <h1>Merci, le vote est terminé !</h1>
+    </div>
+    """
+    
+# --- Calculs stats et génération du rapport PDF ---
+@bp.route('/entretien/<int:entretien_id>/pdf')
+@login_required
+def entretien_pdf(entretien_id):
+    key = f"pdf:{entretien_id}"
+    pdf_bytes = cache.get(key)
+
+    if pdf_bytes is None:
+        entretien = Entretien.query.get_or_404(entretien_id)
+        stats = calculs.calculer_stat(entretien)
+        pdf_bytes = pdf.generer_rapport(entretien, stats)
+        cache.set(key, pdf_bytes, timeout=3600)  # 1h
+
+    return send_file(io.BytesIO(pdf_bytes),
+                     mimetype="application/pdf",
+                     as_attachment=True,
+                     download_name=f"rapport_{entretien_id}.pdf")

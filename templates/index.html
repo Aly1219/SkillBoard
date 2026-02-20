@@ -16,7 +16,7 @@
             <h1>Bonjour {{ user }}</h1>
 
             <!-- Bouton déconnexion -->
-             <a href="{{ url_for('main.logout') }}" class="btn-logout" title="Se déconnecter">
+             <a href="{{ url_for('main.logout') }}" class="btn-go-back" title="Se déconnecter">
                 <i class="fas fa-sign-out-alt"></i>
              </a>
         </header>
@@ -89,7 +89,7 @@
                             <th>Candidat.e</th>
                             <th>Poste</th>
                             <th>Statut</th>
-                            <th class="text-right">Actions</th>
+                            <th class="action-col">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -109,20 +109,22 @@
                                 {% if ent.statut == 'Termine' %}
                                     <span class="badge badge-success">Terminé</span>
                                 {% elif ent.statut == 'Attente_Recruteur2' %}
-                                    <span class="badge badge-warning">Attente RH2</span>
+                                    <span class="badge badge-warning">Attente recruteur n°2</span>
+                                {% elif ent.statut == 'Attente_RH' %}
+                                    <span class="badge badge-warning">Attente RH</span>
                                 {% else %}
                                     <span class="badge badge-info">Créé</span>
                                 {% endif %}
                             </td>
 
                             <!-- 5. ACTIONS -->
-                            <td class="text-right action-cell">
-                                <div style="display: flex; justify-content: flex-end; gap: 10px; align-items: center;">
+                            <td class="action-cell">
+                                <div>
                                     
                                     <!-- A) BOUTON PRINCIPAL (Selon statut) -->
                                     {% if ent.statut == 'Termine' %}
                                         <!-- Cas Terminé : Rapport PDF -->
-                                        <a href="" target="_blank" class="btn-action btn-pdf" title="Télécharger le rapport" style="color: #444;">
+                                        <a href="{{ url_for('main.entretien_pdf', entretien_id=ent.id) }}" target="_blank" class="btn-action btn-pdf" title="Télécharger le rapport" style="color: #444;">
                                             <i class="fas fa-file-pdf"></i> PDF
                                         </a>
                                     
@@ -131,28 +133,31 @@
                                         <button 
                                             class="btn-action btn-link" 
                                             title="Copier le lien pour le 2e recruteur"
-                                            data-link=""
-                                            onclick=""
+                                            data-link="{{ url_for('main.vote_guest', token=ent.token_recruteur2, _external=True) }}"
+                                            onclick="copyLinkFromData(this)"
                                             style="background:none; border:none; cursor:pointer; color:#444;">
                                             <i class="fas fa-link"></i> Lien
                                         </button>
                                     
-                                    {% else %}
-                                        <!-- Cas Créé : Poursuivre l'évaluation -->
-                                        <a href="" class="btn-action" title="Poursuivre l'évaluation" style="color: #2196F3;">
+                                    {% elif ent.statut == 'Attente_RH' %}
+                                        <!-- Cas À faire : Commencer l'évaluation -->
+                                        <a href="{{ url_for('main.page_vote_rh', entretien_id=ent.id) }}" class="btn-action" title="Commencer l'évaluation" style="color: #ffbd38e8;">
                                             <i class="fas fa-play"></i>
+                                        </a>
+                                    
+                                    {% else %}
+                                        <!-- Cas Créé : Paramétrer les compétences -->
+                                        <a href="{{ url_for('main.page_evaluation', entretien_id=ent.id) }}" class="btn-action" title="Poursuivre l'évaluation" style="color: #2196F3;">
+                                            <i class="fas fa-gear"></i>
                                         </a>
                                     {% endif %}
 
                                     <!-- B) BOUTON SUPPRIMER (Toujours là) -->
-                                    <a href="" 
-                                    class="btn-action" 
-                                    title="Supprimer cet entretien"
-                                    onclick=""
-                                    style="color: #e57373;">
-                                        <i class="fas fa-trash"></i>
-                                    </a>
-
+                                    <form method="post" action="{{ url_for('main.delete_interview', entretien_id=ent.id) }}">
+                                        <button type="submit" class="btn-action" title="Supprimer cet entretien" onclick="return confirm('Attention : Voulez-vous vraiment supprimer cet entretien ?');" style="color: #e57373;">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
@@ -320,7 +325,6 @@
                 
                 <div class="btn-group">
                     <button type="submit" class="btn-submit">Enregistrer les modifications</button>
-                    <!-- Optionnel : Bouton supprimer -->
                     <button type="button" class="btn-danger" onclick="deletePosteFromEditForm()">Supprimer</button>
                 </div>
             </form>
@@ -338,7 +342,6 @@
             const modal = document.getElementById(modalId);
             if (modal) modal.style.display = "none";
         }
-
 
         // Fermer si on clique sur le fond gris
         window.onclick = function(event) {
@@ -504,6 +507,23 @@
 
         function confirmInterview() {
             document.getElementById('interviewForm').submit();
+        }
+    
+        function copyLinkFromData(buttonElement) {
+            // On récupère l'URL stockée dans l'attribut data-link du bouton cliqué
+            const link = buttonElement.getAttribute('data-link');
+            
+            if (link) {
+                navigator.clipboard.writeText(link).then(function() {
+                    alert('Lien copié dans le presse-papier !');
+                }, function(err) {
+                    console.error('Erreur lors de la copie : ', err);
+                    // Fallback si le navigateur bloque
+                    alert("Impossible de copier automatiquement. Voici le lien :\n" + link);
+                });
+            } else {
+                console.error("Aucun lien trouvé dans l'attribut data-link");
+            }
         }
     </script>
 
