@@ -18,7 +18,7 @@ def home():
     # 1. On récupère les données depuis la base de données
     postes = Poste.query.order_by(Poste.nom.asc()).all()
     all_competences = Competence.query.order_by(Competence.nom.asc()).all()
-    entretiens = Entretien.query.order_by(Entretien.id.desc()).all()
+    entretiens = Entretien.query.order_by(Entretien.date_entretien.asc()).all()
 
     # 2. On les envoie au template
     return render_template('index.html', 
@@ -266,7 +266,7 @@ def delete_interview(entretien_id):
         flash("Échec suppression", "error")
     return redirect(url_for('main.home'))
 
-# --- ROUTE ENREGISTRE LES PARAMETRES D'ENTRETIEN ---
+# --- SAUVEGARDE LES PARAMETRES D'ENTRETIEN ---
 @bp.route('/start_vote/<int:entretien_id>', methods=['POST'])
 def start_vote(entretien_id):
     entretien = Entretien.query.get_or_404(entretien_id)
@@ -345,7 +345,8 @@ def save_vote_rh(entretien_id):
 @bp.route('/vote_guest/<token>')
 def vote_guest(token):
     entretien = Entretien.query.filter_by(token_recruteur2=token).first_or_404()
-    
+    user_name = current_user.username
+
     if entretien.statut == "Termine":
         return "Cet entretien est déjà clôturé."
     
@@ -355,7 +356,31 @@ def vote_guest(token):
             db.session.add(Evaluation(entretien_id=entretien.id, competence_id=skill.id))
     db.session.commit()
 
-    return render_template('voteGuest.html', entretien=entretien, token=token)
+    # Dictionnaire de traduction des mois
+    mois_fr = {
+        1: "janvier", 2: "février", 3: "mars", 4: "avril",
+        5: "mai", 6: "juin", 7: "juillet", 8: "août",
+        9: "septembre", 10: "octobre", 11: "novembre", 12: "décembre"
+    }
+
+    date_affichee = entretien.date_entretien # Valeur par défaut au cas où
+    
+    try:
+        # On convertit la string "2026-01-31" en objet date
+        date_obj = datetime.strptime(entretien.date_entretien, '%Y-%m-%d')
+
+        nom_mois = mois_fr[date_obj.month]
+        date_affichee = f"{date_obj.day} {nom_mois} {date_obj.year}"
+        
+    except ValueError:
+        # Si le format en base n'est pas bon, on garde l'original
+        pass
+
+    return render_template('voteGuest.html', 
+                           entretien=entretien, 
+                           user=user_name,
+                           date_formatted=date_affichee,
+                           token=token)
 
 # --- SAUVEGARDE DU VOTE GUEST ---
 @bp.route('/save_vote_guest/<token>', methods=['POST'])
@@ -379,7 +404,7 @@ def save_vote_guest(token):
     </div>
     """
     
-# --- Calculs stats et génération du rapport PDF ---
+# --- CALCULS STATS + PDF EN CACHE ---
 @bp.route('/entretien/<int:entretien_id>/pdf')
 @login_required
 def entretien_pdf(entretien_id):

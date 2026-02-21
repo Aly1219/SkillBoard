@@ -20,6 +20,7 @@ def create_app():
     )
     cache.init_app(app)
 
+
     # Initialisation des extensions
     db.init_app(app)
 
