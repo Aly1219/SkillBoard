@@ -115,15 +115,20 @@ Evaluation
 
 ## ❓ FAQ
 
-Q : Puis-je l'utiliser sans Internet ? A : Oui ! L'application fonctionne entièrement hors ligne.
+Q : Puis-je l'utiliser sans Internet ? 
+A : Oui ! L'application fonctionne entièrement hors ligne.
 
-Q : Les données sont-elles sécurisées ? A : Oui ! Hash PBKDF2, tokens UUID, validation serveur.
+Q : Les données sont-elles sécurisées ? 
+A : Oui ! Hash PBKDF2, tokens UUID, validation serveur.
 
-Q : Puis-je migrer vers PostgreSQL ? A : Oui ! SQLAlchemy ORM permet une migration simple.
+Q : Puis-je migrer vers PostgreSQL ? 
+A : Oui ! SQLAlchemy ORM permet une migration simple.
 
-Q : Combien d'utilisateurs ? A : v1.0 : 1 (admin). v2.0 : multi-utilisateurs.
+Q : Combien d'utilisateurs ? 
+A : v1.0 : 1 (admin). v2.0 : multi-utilisateurs.
 
-Q : Comment reset le mot de passe admin ? A : Supprimer instance/skillboard.db et relancer.
+Q : Comment reset le mot de passe admin ? 
+A : Supprimer instance/skillboard.db et relancer.
 
 ## 📊 Statistiques
 
