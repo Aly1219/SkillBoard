@@ -1,22 +1,20 @@
 """
 Initialisation de l'application Flask
 """
-# ⚠️ NE PAS importer config ici au niveau du module !
 from flask import Flask
 from app.extensions import db, login_manager, cache
 from app.models import User
-
+from app.utils import resource_path
+from config import Config
 
 def create_app():
-    # ✅ Importer config SEULEMENT à l'intérieur de la fonction
-    from config import Config
-    from app.utils import resource_path
-    
     # Définition des dossiers templates et static avec resource_path
     template_dir = resource_path("templates")
     static_dir = resource_path("static")
     
     app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
+    
+    # ✅ Charger la configuration
     app.config.from_object(Config)
 
     app.config.update(
