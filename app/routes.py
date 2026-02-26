@@ -110,7 +110,7 @@ def add_poste():
         db.session.add(nouveau_poste)
         db.session.commit()
         
-    return redirect(url_for('main.home')) # Note: main.home car on est dans un blueprint
+    return redirect(url_for('main.home'))
 
 # --- ROUTE MODIFIER UN POSTE ---
 @bp.route('/update_poste', methods=['POST'])
