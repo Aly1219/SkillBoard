@@ -1,12 +1,17 @@
+"""
+Initialisation de l'application Flask
+"""
+# ⚠️ NE PAS importer config ici au niveau du module !
 from flask import Flask
-from app.utils import resource_path
-from app.extensions import db, login_manager
-from config import Config
-from .extensions import cache
+from app.extensions import db, login_manager, cache
 from app.models import User
 
 
 def create_app():
+    # ✅ Importer config SEULEMENT à l'intérieur de la fonction
+    from config import Config
+    from app.utils import resource_path
+    
     # Définition des dossiers templates et static avec resource_path
     template_dir = resource_path("templates")
     static_dir = resource_path("static")
@@ -20,26 +25,36 @@ def create_app():
     )
     cache.init_app(app)
 
-
     # Initialisation des extensions
     db.init_app(app)
 
     # --- Config Flask Login ---
     login_manager.init_app(app)
-    login_manager.login_view = 'main.login' # Redirection si utilisateur non connecté
-
-    # Enregistrement des Blueprints (les routes)
-    from app.routes import bp as main_bp
-    app.register_blueprint(main_bp)
+    login_manager.login_view = 'main.login'
 
     with app.app_context():
         db.create_all()
         init_db(app)
+        
+        # Enregistrement des Blueprints (les routes web)
+        from app.routes import bp as main_bp
+        app.register_blueprint(main_bp)
+        
+        # ✅ Enregistrer le blueprint API
+        try:
+            from app.api import api_bp
+            app.register_blueprint(api_bp)
+            print("✅ API REST chargée avec succès")
+        except ImportError as e:
+            print(f"⚠️ Impossible de charger l'API: {e}")
+
     return app
+
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
 
 def init_db(app):
     """Logique d'initialisation de la base de données"""
