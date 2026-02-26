@@ -16,7 +16,7 @@ api = Api(
     doc='/docs'  # URL pour accéder à la documentation Swagger
 )
 
-# Importer les namespaces après création de l'API
+# Importer et enregistrer les namespaces après création de l'API
 from app.api.auth import auth_ns
 from app.api.competences import competences_ns
 from app.api.entretiens import entretiens_ns
