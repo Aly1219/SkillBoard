@@ -15,8 +15,8 @@ try:
     print("\n" + "="*60)
     print("✅ Application SkillBoard démarrée !")
     print("="*60)
-    print("   🌐 Web:  http://localhost:8000")
-    print("   📊 API:  http://localhost:8000/api/v1/docs")
+    print("   🌐 Web:  http://localhost:5001")
+    print("   📊 API:  http://localhost:5001/api/v1/docs")
     print("="*60 + "\n")
     
     # Afficher les routes disponibles
@@ -27,9 +27,9 @@ try:
     print()
     '''
     
-    # ✅ CORRECTION : Utiliser 0.0.0.0 pour Docker
+    # ✅ CORRECT : Port 5001 pour Docker, host 0.0.0.0
     host = os.getenv('FLASK_HOST', '0.0.0.0')
-    port = int(os.getenv('FLASK_PORT', 5000))
+    port = int(os.getenv('FLASK_PORT', 5001))
     debug = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
     
     app.run(debug=debug, host=host, port=port)

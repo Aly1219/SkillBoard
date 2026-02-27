@@ -5,24 +5,18 @@ class Config:
     """Configuration de base pour SkillBoard"""
     
     # ============================================================================
-    # BASE DE DONNÉES
+    # BASE DE DONNÉES - SQLite Local (Docker compatible)
     # ============================================================================
     
-    # Utiliser un chemin ABSOLU pour Docker
-    db_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'instance', 'skillboard.db')
+    # Créer le répertoire instance s'il n'existe pas
+    instance_path = os.path.abspath(os.path.dirname(__file__))
+    os.makedirs(os.path.join(instance_path, 'instance'), exist_ok=True)
     
-    # Créer le répertoire s'il n'existe pas
-    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+    db_path = os.path.join(instance_path, 'instance', 'skillboard.db')
+    SQLALCHEMY_DATABASE_URI = f'sqlite:///{db_path}'
     
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        'DATABASE_URL',
-        f'sqlite:///{db_path}'
-    )
-    
-    # Désactiver les warnings de modification de modèles
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
-    # Pool de connexions (utile pour concurrence)
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_size': 10,
         'pool_recycle': 3600,
@@ -33,15 +27,13 @@ class Config:
     # SÉCURITÉ
     # ============================================================================
     
-    # Clé secrète (OBLIGATOIRE en production)
     SECRET_KEY = os.getenv(
         'SECRET_KEY',
         'dev-key-change-in-production-asap'
     )
     
-    # Session
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
-    SESSION_COOKIE_SECURE = os.getenv('FLASK_ENV') == 'production'
+    SESSION_COOKIE_SECURE = False  # Local, pas HTTPS
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     
@@ -61,7 +53,7 @@ class Config:
     CACHE_DEFAULT_TIMEOUT = int(os.getenv('CACHE_DEFAULT_TIMEOUT', '3600'))
     
     # ============================================================================
-    # EMAIL (Pour récupération de mot de passe futur)
+    # EMAIL
     # ============================================================================
     
     MAIL_SERVER = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
@@ -82,7 +74,7 @@ class Config:
     # APPLICATION
     # ============================================================================
     
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file upload
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024
     JSON_SORT_KEYS = False
 
 
@@ -90,22 +82,13 @@ class DevelopmentConfig(Config):
     """Configuration pour développement"""
     DEBUG = True
     TESTING = False
-    SQLALCHEMY_ECHO = True  # Afficher les requêtes SQL
+    SQLALCHEMY_ECHO = True
 
 
 class ProductionConfig(Config):
     """Configuration pour production"""
     DEBUG = False
     TESTING = False
-    
-    # En production, la SECRET_KEY DOIT être définie
-    @staticmethod
-    def init_app(app):
-        if app.config['SECRET_KEY'] == 'dev-key-change-in-production-asap':
-            raise ValueError(
-                '⚠️ ERREUR CRITIQUE : SECRET_KEY par défaut en production ! '
-                'Définir la variable d\'environnement SECRET_KEY'
-            )
 
 
 class TestingConfig(Config):
@@ -115,10 +98,6 @@ class TestingConfig(Config):
     WTF_CSRF_ENABLED = False
 
 
-# ============================================================================
-# SÉLECTIONNER LA CONFIGURATION
-# ============================================================================
-
 config_by_name = {
     'development': DevelopmentConfig,
     'production': ProductionConfig,
@@ -127,6 +106,6 @@ config_by_name = {
 }
 
 def get_config():
-    """Retourner la configuration appropriée selon l'environnement"""
+    """Retourner la configuration appropriée"""
     env = os.getenv('FLASK_ENV', 'development')
     return config_by_name.get(env, config_by_name['default'])
