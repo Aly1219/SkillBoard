@@ -3,6 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from app.extensions import db, cache
 from app.models import User, Poste, Competence, Entretien, Evaluation
 from datetime import datetime
+from sqlalchemy import select, delete
 import uuid
 import app.calculs as calculs
 import app.pdf as pdf
@@ -16,9 +17,14 @@ bp = Blueprint('main', __name__)
 @login_required
 def home():
     # 1. On récupère les données depuis la base de données
-    postes = Poste.query.order_by(Poste.nom.asc()).all()
-    all_competences = Competence.query.order_by(Competence.nom.asc()).all()
-    entretiens = Entretien.query.order_by(Entretien.date_entretien.asc()).all()
+    stmt = select(Poste).order_by(Poste.nom.asc())
+    postes = db.session.scalars(stmt).all()
+
+    stmt = select(Competence).order_by(Competence.nom.asc())
+    all_competences = db.session.scalars(stmt).all()
+
+    stmt = select(Entretien).order_by(Entretien.date_entretien.asc())
+    entretiens = db.session.scalars(stmt).all()
 
     # 2. On les envoie au template
     return render_template('index.html', 
@@ -36,14 +42,15 @@ def login():
     
     # LOGIQUE (1) - Première connexion
     # Si aucun utilisateur n'existe dans la base, on force la redirection vers l'inscription
-    if not User.query.first():
+    if not db.session.query(User).first():
         return redirect(url_for('main.register'))
     
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
 
-        user = User.query.filter_by(username=username).first()
+        stmt = select(User).where(User.username == username)
+        user = db.session.scalars(stmt).first()
 
         #Vérification du mot de passe
         if user and user.check_password(password):
@@ -57,7 +64,7 @@ def login():
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
     # Sécurité : Si un utilisateur existe déjà, on empêche d'en créer un nouveau
-    if User.query.first() and not current_user.is_authenticated:
+    if db.session.query(User).first() and not current_user.is_authenticated:
         return redirect(url_for('main.login'))
 
     if request.method == 'POST':
@@ -87,7 +94,9 @@ def logout():
 # --- ROUTE POSTES EXISTANTS ---
 @bp.route('/api/poste/<int:poste_id>')
 def get_poste_details(poste_id):
-    poste = Poste.query.get_or_404(poste_id)
+    poste = db.session.get(Poste, poste_id)
+    if not poste:
+        abort(404)
     skills = [{"id": c.id, "nom": c.nom} for c in poste.competences]
     return jsonify({
         "nom": poste.nom,
@@ -102,12 +111,14 @@ def add_poste():
     
     if nom:
         nouveau_poste = Poste(nom=nom)
+        db.session.add(nouveau_poste)
+        db.session.flush() # Génère l'ID du poste
+
         for s_id in skill_ids:
-            comp = Competence.query.get(s_id)
+            comp = db.session.get(Competence, s_id)
             if comp:
                 nouveau_poste.competences.append(comp)
         
-        db.session.add(nouveau_poste)
         db.session.commit()
         
     return redirect(url_for('main.home'))
@@ -121,7 +132,7 @@ def update_poste():
     competences_ids = request.form.getlist('competences') 
 
     # 2. Recherche du poste dans la base de données
-    poste = Poste.query.get(poste_id)
+    poste = db.session.get(Poste, poste_id)
 
     if poste:
         # 3. Mise à jour du nom
@@ -130,7 +141,7 @@ def update_poste():
         # 4. Mise à jour des compétences
         nouvelle_liste_competences = []
         for skill_id in competences_ids:
-            skill = Competence.query.get(int(skill_id))
+            skill = db.session.get(Competence, int(skill_id))
             if skill:
                 nouvelle_liste_competences.append(skill)
         poste.competences = nouvelle_liste_competences
@@ -147,7 +158,7 @@ def update_poste():
 # --- ROUTE SUPPRIMER UN POSTE ---
 @bp.route('/api/poste/<int:poste_id>', methods=['DELETE'])
 def api_delete_poste(poste_id):
-    poste = Poste.query.get(poste_id)
+    poste = db.session.get(Poste, poste_id)
     if not poste:
         return jsonify({'success': False, 'message': 'Poste non trouvé'}), 404
 
@@ -167,7 +178,8 @@ def add_competence():
     
     if nom:
         # On vérifie si la compétence existe déjà pour éviter les doublons
-        existe = Competence.query.filter_by(nom=nom).first()
+        stmt = select(Competence).where(Competence.nom == nom)
+        existe = db.session.scalars(stmt).first()
         
         if not existe:
             nouvelle_comp = Competence(nom=nom)
@@ -187,7 +199,8 @@ def create_interview():
     poste_nom = request.form.get('entr_poste')
     
     # Trouver le poste correspondant (pour lier les compétences)
-    poste = Poste.query.filter_by(nom=poste_nom).first()
+    stmt = select(Poste).where(Poste.nom == poste_nom)
+    poste = db.session.scalars(stmt).first()
     
     if poste:
         nouvel_entretien = Entretien(
@@ -217,7 +230,9 @@ def create_interview():
 # --- ROUTE VERS PARAMETRAGE D'ENTRETIEN ---
 @bp.route('/entretien/<int:entretien_id>')
 def page_evaluation(entretien_id):
-    entretien = Entretien.query.get_or_404(entretien_id)
+    entretien = db.session.get(Entretien, entretien_id)
+    if not entretien:
+        abort(404)
     user_name = current_user.username
     
     # Dictionnaire de traduction des mois
@@ -250,14 +265,17 @@ def page_evaluation(entretien_id):
 @bp.route('/delete_interview/<int:entretien_id>', methods=['POST'])
 @login_required
 def delete_interview(entretien_id):
-    entretien = Entretien.query.get(entretien_id)
+    entretien = db.session.get(Entretien, entretien_id)
     if entretien is None:
         flash("Entretien non trouvé", "error")
         return redirect(url_for('main.home'))  # ajuste selon ta route home
 
     try:
-        # Suppression des évaluations liées
-        Evaluation.query.filter_by(entretien_id=entretien_id).delete()
+        # Supprimer toutes les évaluations liées à cet entretien
+        stmt = delete(Evaluation).where(Evaluation.entretien_id == entretien_id)
+        db.session.execute(stmt)
+
+        # Supprimer l'entretien
         db.session.delete(entretien)
         db.session.commit()
         flash("Entretien supprimé", "success")
@@ -269,7 +287,9 @@ def delete_interview(entretien_id):
 # --- SAUVEGARDE LES PARAMETRES D'ENTRETIEN ---
 @bp.route('/start_vote/<int:entretien_id>', methods=['POST'])
 def start_vote(entretien_id):
-    entretien = Entretien.query.get_or_404(entretien_id)
+    entretien = db.session.get(Entretien, entretien_id)
+    if not entretien:
+        abort(404)
 
     # 1) Figer les compétences (snapshot) -> créer les Evaluation manquantes
     existing = {e.competence_id for e in entretien.evaluations}
@@ -290,7 +310,9 @@ def start_vote(entretien_id):
 # --- CREATION DE LA PAGE VOTE_RH ---
 @bp.route('/vote_rh/<int:entretien_id>')
 def page_vote_rh(entretien_id):
-    entretien = Entretien.query.get_or_404(entretien_id)
+    entretien = db.session.get(Entretien, entretien_id)
+    if not entretien:
+        abort(404)
     user_name = current_user.username
 
     entretien.statut = "Attente_RH"
@@ -324,7 +346,9 @@ def page_vote_rh(entretien_id):
 # --- SAUVEGARDE DU VOTE RH ---
 @bp.route('/save_vote_rh/<int:entretien_id>', methods=['POST'])
 def save_vote_rh(entretien_id):
-    entretien = Entretien.query.get_or_404(entretien_id)
+    entretien = db.session.get(Entretien, entretien_id)
+    if not entretien:
+        abort(404)
 
     # MAJ des évaluations existantes (snapshot)
     for ev in entretien.evaluations:
@@ -344,7 +368,10 @@ def save_vote_rh(entretien_id):
 # --- CREATION DE LA PAGE VOTE_GUEST ---
 @bp.route('/vote_guest/<token>')
 def vote_guest(token):
-    entretien = Entretien.query.filter_by(token_recruteur2=token).first_or_404()
+    stmt = select(Entretien).where(Entretien.token_recruteur2 == token)
+    entretien = db.session.scalars(stmt).first()
+    if not entretien:
+        abort(404)
     user_name = current_user.username
 
     if entretien.statut == "Termine":
@@ -385,7 +412,10 @@ def vote_guest(token):
 # --- SAUVEGARDE DU VOTE GUEST ---
 @bp.route('/save_vote_guest/<token>', methods=['POST'])
 def save_vote_guest(token):
-    entretien = Entretien.query.filter_by(token_recruteur2=token).first_or_404()
+    stmt = select(Entretien).where(Entretien.token_recruteur2 == token)
+    entretien = db.session.scalars(stmt).first()
+    if not entretien:
+        abort(404)
     
     # 1. Enregistrement des notes du 2ème recruteur
     for evaluation in entretien.evaluations:
@@ -412,7 +442,8 @@ def entretien_pdf(entretien_id):
     pdf_bytes = cache.get(key)
 
     if pdf_bytes is None:
-        entretien = Entretien.query.get_or_404(entretien_id)
+        entretien = db.session.get(Entretien, entretien_id)
+        abort(404)
         stats = calculs.calculer_stat(entretien)
         pdf_bytes = pdf.generer_rapport(entretien, stats)
         cache.set(key, pdf_bytes, timeout=3600)  # 1h
