@@ -1,68 +1,158 @@
-# 🤖 SkillBoard
+# 🎯 SkillBoard
 
-## 📖 About
-SkillBoard is a full-featured, modern application built using Flask and SQLAlchemy.
+> **Plateforme intelligente de gestion des entretiens d'embauche**
 
-## ⭐ Features
-- User authentication
-- Real-time updates
-- Responsive design
+[![Tests](https://github.com/Aly1219/SkillBoard/actions/workflows/tests.yml/badge.svg)](https://github.com/Aly1219/SkillBoard/actions)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![Flask 3.1+](https://img.shields.io/badge/Flask-3.1%2B-lightgrey?logo=flask)](https://flask.palletsprojects.com/)
+[![SQLAlchemy 2.0](https://img.shields.io/badge/SQLAlchemy-2.0-red)](https://www.sqlalchemy.org/)
+[![Coverage 70%](https://img.shields.io/badge/coverage-70%25-brightgreen)](https://github.com/Aly1219/SkillBoard)
+[![Licence MIT](https://img.shields.io/badge/licence-MIT-green)](LICENSE)
 
-## ⚙️ Installation
-### 🐳 Docker
+---
+
+## 📚 Table des matières
+
+- [À propos](#-à-propos)
+- [Fonctionnalités](#-fonctionnalités)
+- [Installation](#-installation)
+- [Utilisation](#-utilisation)
+- [Architecture](#-architecture)
+- [Tests](#-tests)
+
+---
+
+## 💡 À propos
+
+**SkillBoard** est une application web moderne pour gérer l'intégralité de vos processus de recrutement. Interface intuitive et outils collaboratifs pour simplifier l'évaluation des candidats.
+
+---
+
+## ✨ Fonctionnalités
+
+- 🔐 **Authentification sécurisée** - Hash PBKDF2
+- 👥 **Gestion des entretiens** - Création et suivi
+- 📊 **Évaluation multi-recruteurs** - Vote collaboratif
+- 📄 **Génération de PDFs** - Automatique
+- 🎨 **Interface moderne** - Responsive et intuitive
+- 💾 **SQLite** - Zéro configuration
+
+---
+
+## 🚀 Installation
+
+### À partir du code source
+
 ```bash
-docker-compose up
-```
-### 📦 Source Code
-```bash
+# Cloner le projet
 git clone https://github.com/Aly1219/SkillBoard.git
 cd SkillBoard
-```
-### 🛠 Standalone
-Ensure you have Python 3.x installed, then run:
-```bash
+
+# Créer l'environnement virtuel
+python -m venv venv
+
+# Linux/Mac
+source venv/bin/activate
+
+# Windows
+venv\Scripts\activate
+
+# Installer les dépendances
 pip install -r requirements.txt
+
+# Lancer l'application
+python run.py
 ```
 
-## 🚀 Usage
-1. **Start the application**:
-   ```bash
-   python app.py
-   ```
-2. **Navigate to http://localhost:5000** in your browser.
+L'app sera accessible sur **http://localhost:5000**
 
-## 🏗 Architecture
-![Architecture Diagram](path/to/architecture_diagram.png)
+---
 
-## 🗄 Data Model
-- **User**: Represents a user.
-- **Board**: Represents a board containing tasks.
+## 📖 Utilisation
 
-## ✅ Tests & Quality
-- **57 tests** covering critical functionalities.
-- **70% test coverage** to ensure code quality.
+### 1️⃣ Première connexion
+- Allez sur http://localhost:5000
+- Cliquez sur "S'inscrire"
+- Créez votre compte admin
+- Accès direct au dashboard ✨
 
-## ⚙️ Configuration
-Configuration can be modified in the `config.py` file.
+### 2️⃣ Préparez les données
+- Dashboard → Ajouter une Compétence
+- Dashboard → Ajouter un Poste (sélectionner les compétences)
 
-## 🤝 Contributing
-We welcome contributions! Please follow our guidelines:
-1. Fork the repository.
-2. Create a new branch.
-3. Submit a pull request.
+### 3️⃣ Créez un entretien
+- Dashboard → Créer un Entretien
+- Remplissez les infos du candidat
+- Sélectionnez le poste
+- Créer
 
-## 📜 License
-This project is licensed under the MIT License.
+### 4️⃣ Évaluez
+- Recruteur principal → Note les compétences → Valide
+- Un lien est généré pour le recruteur guest
+- Recruteur guest → Reçoit le lien → Vote
 
-## 🛠 Support
-If you have any issues, please reach out via the Issues tab.
+### 5️⃣ Récupérez le rapport
+- Dashboard → Cliquez sur l'entretien
+- Bouton "Télécharger PDF"
+- Rapport complet généré ! 📄
 
-## 🙏 Acknowledgments
-Thanks to all contributors and supporters! 
+---
 
-## 🛡 Badges
-![Python Version](https://img.shields.io/badge/python-3.8-blue)
-![Flask](https://img.shields.io/badge/Flask-1.1.2-red)
-![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-1.3.20-orange)
-![Coverage](https://img.shields.io/badge/coverage-70%25-brightgreen) 
-![License](https://img.shields.io/badge/license-MIT-blue)
+## 🏗️ Architecture
+
+### Stack Technique
+```
+Frontend (HTML/Jinja/CSS/JS) ↔ Backend (Flask) ↔ Database (SQLite)
+```
+
+### Structure du Projet
+```
+SkillBoard/
+├── app/
+│   ├── models.py           # ORM SQLAlchemy
+│   ├── routes.py           # Routes principales
+│   ├── api/                # APIs
+│   ├── calculs.py          # Formules statistiques
+│   ├── pdf.py              # Génération PDFs
+│   └── templates/          # HTML
+├── tests/
+│   ├── test_unitaire_*.py  # 29 tests unitaires
+│   └── test_integration_*.py # 27 tests intégration
+├── requirements.txt
+└── run.py
+```
+
+### Modèle de Données
+- **User** : Utilisateur principal
+- **Competence** : Liste des compétences
+- **Poste** : Postes avec compétences associées
+- **Entretien** : Entretiens avec candidats
+- **Evaluation** : Notes pour chaque compétence
+
+---
+
+## ✅ Tests & Qualité
+
+### 57 Tests Automatisés ✅
+- 📊 **Couverture** : 70%
+- ⏱️ **Durée** : 8.71s
+- 🔄 **CI/CD** : GitHub Actions (automatique)
+
+### Exécuter les tests
+```bash
+# Tous les tests
+pytest tests/ -v
+
+# Avec couverture
+pytest tests/ --cov=app --cov-report=html
+```
+
+---
+
+## 📝 Licence
+
+MIT License - Voir [LICENSE](LICENSE)
+
+---
+
+**Fait avec ❤️ par Alisson Calovini**
