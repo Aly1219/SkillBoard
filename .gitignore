@@ -8,4 +8,4 @@ instance/
 static/img/
 Dockerfile
 .dokerignore
-/tests
+.coverage
