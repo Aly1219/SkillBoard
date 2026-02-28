@@ -1,33 +1,42 @@
 """
-Script de test pour vérifier les imports
+Test pour vérifier les imports
 """
-print("1. Import Flask...")
-from flask import Flask
-print("   ✅ OK")
 
-print("2. Import config...")
-from config import Config
-print("   ✅ OK")
+def test_import_flask():
+    """✅ Teste l'import de Flask"""
+    from flask import Flask
+    assert Flask is not None
+    print("   ✅ Flask OK")
 
-print("3. Import extensions...")
-from app.extensions import db, login_manager, cache
-print("   ✅ OK")
+def test_import_config():
+    """✅ Teste l'import de config"""
+    from config import Config
+    assert Config is not None
+    print("   ✅ Config OK")
 
-print("4. Import models...")
-from app.models import User, Competence, Poste, Entretien, Evaluation
-print("   ✅ OK")
+def test_import_extensions():
+    """✅ Teste l'import des extensions"""
+    from app.extensions import db, login_manager, cache
+    assert db is not None
+    assert login_manager is not None
+    assert cache is not None
+    print("   ✅ Extensions OK")
 
-print("5. Import routes...")
-from app.routes import bp
-print("   ✅ OK")
+def test_import_models():
+    """✅ Teste l'import des modèles"""
+    from app.models import User, Competence, Poste, Entretien, Evaluation
+    assert User is not None
+    assert Competence is not None
+    print("   ✅ Models OK")
 
-print("6. Import API...")
-try:
+def test_import_routes():
+    """✅ Teste l'import des routes"""
+    from app.routes import bp
+    assert bp is not None
+    print("   ✅ Routes OK")
+
+def test_import_api():
+    """✅ Teste l'import de l'API"""
     from app.api import api_bp
-    print("   ✅ OK")
-except Exception as e:
-    print(f"   ❌ ERREUR: {e}")
-    import traceback
-    traceback.print_exc()
-
-print("\n✅ Tous les imports fonctionnent!")
+    assert api_bp is not None
+    print("   ✅ API OK")
