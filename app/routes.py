@@ -451,5 +451,12 @@ def entretien_pdf(entretien_id):
 
     return send_file(io.BytesIO(pdf_bytes),
                      mimetype="application/pdf",
-                     as_attachment=True,
+                     # Possible modif depuis un onglet de configuration
+                     as_attachment=False,
                      download_name=f"rapport_{entretien_id}.pdf")
+
+@bp.route('/clear_cache')
+@login_required
+def clear_cache():
+    cache.clear()
+    return "Cache vidé !", redirect(url_for('main.home'))

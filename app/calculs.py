@@ -14,6 +14,11 @@ def calculer_stat(evaluations):
         moyenne = (n1 + n2) / 2
         ecart = abs(n1 - n2)
         
+    # ===========================================================
+    #  À FAIRE
+            # Ajouter Palier (aussi dans la table evaluation)
+            # Masquer les notes des recruteurs
+    # ===========================================================
         resultats.append({
             "competence": eva.competence.nom,
             "note_rh": n1,
