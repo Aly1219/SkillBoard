@@ -443,7 +443,8 @@ def entretien_pdf(entretien_id):
 
     if pdf_bytes is None:
         entretien = db.session.get(Entretien, entretien_id)
-        abort(404)
+        if not entretien:  # ✅ Vérifier d'abord si l'entretien existe
+            abort(404)
         stats = calculs.calculer_stat(entretien)
         pdf_bytes = pdf.generer_rapport(entretien, stats)
         cache.set(key, pdf_bytes, timeout=3600)  # 1h

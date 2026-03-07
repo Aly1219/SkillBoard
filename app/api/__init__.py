@@ -20,10 +20,12 @@ api = Api(
 from app.api.auth import auth_ns
 from app.api.competences import competences_ns
 from app.api.entretiens import entretiens_ns
+from app.api.voteGuest import guest_voting_ns
 
 # Ajouter les namespaces
 api.add_namespace(auth_ns, path='/auth')
 api.add_namespace(competences_ns, path='/competences')
 api.add_namespace(entretiens_ns, path='/entretiens')
+api.add_namespace(guest_voting_ns, path='/voting')
 
 __all__ = ['api_bp']
