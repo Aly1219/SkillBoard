@@ -17,6 +17,4 @@ def generer_rapport(entretien, stats) -> bytes:
 
     # ... tableau résultats avec stats ...
 
-    # Retourne le PDF en bytes (pas de fichier)
-    pdf_str = pdf.output(dest="S")          # str (latin-1) avec fpdf
-    return pdf_str.encode("latin-1")
+    return pdf.output()
