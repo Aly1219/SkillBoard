@@ -37,6 +37,7 @@ class Evaluation(db.Model):
     competence_id = db.Column(db.Integer, db.ForeignKey('competence.id'), nullable=False)
     note_rh = db.Column(db.Integer, nullable=True)
     note_recruteur2 = db.Column(db.Integer, nullable=True)
+    palier = db.Column(db.Integer)
     competence = db.relationship('Competence')
 
 class User(UserMixin, db.Model):

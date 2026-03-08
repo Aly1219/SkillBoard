@@ -295,16 +295,30 @@ def start_vote(entretien_id):
     existing = {e.competence_id for e in entretien.evaluations}
     for skill in entretien.poste.competences:
         if skill.id not in existing:
-            db.session.add(Evaluation(
+            palier_str = request.form.get(f'palier_{skill.id}', 0)
+            ponderation_str = request.form.get(f'ponderation_{skill.id}', '1')
+
+            try:
+                palier = int(palier_str) if palier_str else 7
+                ponderation = int(ponderation_str) if ponderation_str else 1
+            except ValueError:
+                palier = 7
+                ponderation = 1
+
+            evaluation = Evaluation(
                 entretien_id=entretien.id,
-                competence_id=skill.id
-            ))
+                competence_id=skill.id,
+                palier=palier,
+                ponderation=ponderation
+            )
+            db.session.add(evaluation)
 
     # 2) Changer le statut
     entretien.statut = "Attente_RH"
 
     db.session.commit()
-
+    flash(f'Évaluation lancée pour {entretien.candidat_nom}', 'success')
+    
     return redirect(url_for('main.page_vote_rh', entretien_id=entretien.id))
 
 # --- CREATION DE LA PAGE VOTE_RH ---
@@ -454,9 +468,3 @@ def entretien_pdf(entretien_id):
                      # Possible modif depuis un onglet de configuration
                      as_attachment=False,
                      download_name=f"rapport_{entretien_id}.pdf")
-
-@bp.route('/clear_cache')
-@login_required
-def clear_cache():
-    cache.clear()
-    return "Cache vidé !", redirect(url_for('main.home'))

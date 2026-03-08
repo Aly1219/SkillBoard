@@ -2,6 +2,7 @@
 Initialisation de l'application Flask
 """
 from flask import Flask
+from flask_migrate import Migrate  # ✅ AJOUTE CETTE LIGNE
 from app.extensions import db, login_manager, cache
 from app.models import User
 from app.utils import resource_path
@@ -25,6 +26,7 @@ def create_app():
 
     # Initialisation des extensions
     db.init_app(app)
+    migrate = Migrate(app, db)  # ✅ AJOUTE CETTE LIGNE
 
     # --- Config Flask Login ---
     login_manager.init_app(app)
