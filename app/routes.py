@@ -285,40 +285,47 @@ def delete_interview(entretien_id):
     return redirect(url_for('main.home'))
 
 # --- SAUVEGARDE LES PARAMETRES D'ENTRETIEN ---
-@bp.route('/start_vote/<int:entretien_id>', methods=['POST'])
+@bp.route('/entretien/<int:entretien_id>/start_vote', methods=['POST'])
+@login_required
 def start_vote(entretien_id):
+    """
+    Crée les évaluations avec les paliers définis
+    """
     entretien = db.session.get(Entretien, entretien_id)
     if not entretien:
         abort(404)
 
-    # 1) Figer les compétences (snapshot) -> créer les Evaluation manquantes
-    existing = {e.competence_id for e in entretien.evaluations}
-    for skill in entretien.poste.competences:
-        if skill.id not in existing:
-            palier_str = request.form.get(f'palier_{skill.id}', 0)
-            ponderation_str = request.form.get(f'ponderation_{skill.id}', '1')
-
-            try:
-                palier = int(palier_str) if palier_str else 7
-                ponderation = int(ponderation_str) if ponderation_str else 1
-            except ValueError:
-                palier = 7
-                ponderation = 1
-
-            evaluation = Evaluation(
-                entretien_id=entretien.id,
-                competence_id=skill.id,
-                palier=palier,
-                ponderation=ponderation
-            )
-            db.session.add(evaluation)
-
-    # 2) Changer le statut
-    entretien.statut = "Attente_RH"
-
+    # ✅ Supprime les évaluations existantes si elles existent
+    Evaluation.query.filter_by(entretien_id=entretien.id).delete()
     db.session.commit()
-    flash(f'Évaluation lancée pour {entretien.candidat_nom}', 'success')
     
+    # ✅ Récupère les paliers du formulaire
+    for skill in entretien.poste.competences:
+        palier_str = request.form.get(f'palier_{skill.id}', '')
+        ponderation_str = request.form.get(f'ponderation_{skill.id}', '1')
+        
+        try:
+            palier = int(palier_str) if palier_str else 7
+            ponderation = int(ponderation_str) if ponderation_str else 1
+        except ValueError:
+            palier = 7
+            ponderation = 1
+        
+        # ✅ Crée l'évaluation avec le palier
+        evaluation = Evaluation(
+            entretien_id=entretien.id,
+            competence_id=skill.id,
+            palier=palier,
+            ponderation=ponderation
+        )
+        db.session.add(evaluation)
+    
+    # Changer le statut de l'entretien
+    entretien.statut = "Attente_RH"
+    
+    db.session.commit()
+    
+    flash(f'Évaluation lancée pour {entretien.candidat_nom}', 'success')
     return redirect(url_for('main.page_vote_rh', entretien_id=entretien.id))
 
 # --- CREATION DE LA PAGE VOTE_RH ---

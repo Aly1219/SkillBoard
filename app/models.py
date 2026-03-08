@@ -38,6 +38,7 @@ class Evaluation(db.Model):
     note_rh = db.Column(db.Integer, nullable=True)
     note_recruteur2 = db.Column(db.Integer, nullable=True)
     palier = db.Column(db.Integer)
+    ponderation = db.Column(db.Integer)
     competence = db.relationship('Competence')
 
 class User(UserMixin, db.Model):
