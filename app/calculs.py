@@ -29,7 +29,7 @@ def calculer_stat(evaluations):
         moyenne = (n1 + n2) / 2
         ecart_rec = abs(n1 - n2)
         palier = eva.palier or 0
-        ecart_moy_pal = eva.palier - moyenne
+        ecart_moy_pal = palier - moyenne
         
         atteint_palier = moyenne >= palier
         ecart_palier = moyenne - palier
@@ -62,7 +62,6 @@ def calculer_stat(evaluations):
     sous_palier = [r for r in resultats if not r['atteint_palier']]
     resultats_tries = sorted(resultats, key=lambda x: x['moyenne'], reverse=True)
     
-    # ✅ Palier moyen (pour les recommandations)
     palier_moyen = sum([r['palier'] for r in resultats]) / len(resultats) if resultats else 7
     
     return {

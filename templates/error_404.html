@@ -1,0 +1,14 @@
+{% extends "error_base.html" %}
+
+{% block title %}Page non trouvée - SkillBoard{% endblock %}
+{% block icon %}🔍{% endblock %}
+{% block message %}Désolé, la page que vous recherchez n'existe pas. Elle a peut-être été déplacée ou supprimée.{% endblock %}
+{% block buttons %}
+<a href="{{ url_for('main.home') }}" class="btn btn-primary">Retour au tableau de bord</a>
+<a href="javascript:history.back()" class="btn btn-secondary">Retour</a>
+{% endblock %}
+{% block details %}
+<div class="error-details">
+    <p>Code d'erreur: 404 - NOT FOUND</p>
+</div>
+{% endblock %}

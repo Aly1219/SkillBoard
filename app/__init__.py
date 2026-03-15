@@ -1,8 +1,8 @@
 """
 Initialisation de l'application Flask
 """
-from flask import Flask
-from flask_migrate import Migrate  # ✅ AJOUTE CETTE LIGNE
+from flask import Flask, render_template
+from flask_migrate import Migrate
 from app.extensions import db, login_manager, cache
 from app.models import User
 from app.utils import resource_path
@@ -26,7 +26,7 @@ def create_app():
 
     # Initialisation des extensions
     db.init_app(app)
-    migrate = Migrate(app, db)  # ✅ AJOUTE CETTE LIGNE
+    migrate = Migrate(app, db)
 
     # --- Config Flask Login ---
     login_manager.init_app(app)
@@ -47,13 +47,37 @@ def create_app():
             print("✅ API REST chargée avec succès")
         except ImportError as e:
             print(f"⚠️ Impossible de charger l'API: {e}")
-
+    
+    # ✅ Enregistrer les gestionnaires d'erreur
+    register_error_handlers(app)
+    
     return app
 
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+
+def register_error_handlers(app):
+    """Enregistre les gestionnaires d'erreur pour l'application"""
+    
+    @app.errorhandler(404)
+    def not_found_error(error):
+        return render_template('error_404.html'), 404
+    
+    @app.errorhandler(500)
+    def internal_error(error):
+        db.session.rollback()
+        return render_template('error_500.html'), 500
+    
+    @app.errorhandler(403)
+    def forbidden_error(error):
+        return render_template('error_403.html'), 403
+    
+    @app.errorhandler(400)
+    def bad_request_error(error):
+        return render_template('error_400.html'), 400
 
 
 def init_db(app):

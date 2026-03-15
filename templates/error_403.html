@@ -1,0 +1,13 @@
+{% extends "error_base.html" %}
+
+{% block title %}Accès refusé - SkillBoard{% endblock %}
+{% block icon %}🔐{% endblock %}
+{% block message %}Vous n'avez pas la permission d'accéder à cette ressource. Vérifiez vos droits d'accès.{% endblock %}
+{% block buttons %}
+<a href="{{ url_for('main.home') }}" class="btn btn-primary">Retour au tableau de bord</a>
+{% endblock %}
+{% block details %}
+<div class="error-details">
+    <p>Code d'erreur: 403 - FORBIDDEN</p>
+</div>
+{% endblock %}

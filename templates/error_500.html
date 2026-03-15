@@ -1,0 +1,15 @@
+{% extends "error_base.html" %}
+
+{% block title %}Erreur serveur - SkillBoard{% endblock %}
+{% block icon %}⚠️{% endblock %}
+{% block message %}Une erreur inattendue s'est produite. Nos équipes ont été notifiées et travaillent à la résolution du problème.{% endblock %}
+{% block buttons %}
+<a href="{{ url_for('main.home') }}" class="btn btn-primary">Retour au tableau de bord</a>
+<a href="javascript:location.reload();" class="btn btn-secondary">Réessayer</a>
+{% endblock %}
+{% block details %}
+<div class="error-details">
+    <p>Code d'erreur: 500 - INTERNAL SERVER ERROR</p>
+    <p>Si le problème persiste, contactez l'administrateur.</p>
+</div>
+{% endblock %}

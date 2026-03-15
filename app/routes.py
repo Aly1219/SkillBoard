@@ -473,3 +473,42 @@ def rapport_entretien(entretien_id):
     return render_template('rapport.html', 
                           entretien=entretien, 
                           stats=stats)
+# ===== ROUTES DE TEST D'ERREURS =====
+# À SUPPRIMER EN PRODUCTION !
+
+@bp.route('/test/404')
+def test_404():
+    """Simule une erreur 404"""
+    abort(404)
+
+@bp.route('/test/500')
+def test_500():
+    """Simule une erreur 500"""
+    # ✅ Utilise une erreur qui sera capturée par le gestionnaire
+    try:
+        raise Exception("Erreur serveur intentionnelle pour test")
+    except Exception as e:
+        # Flask retournera automatiquement un 500
+        raise
+
+@bp.route('/test/500/db')
+def test_500_db():
+    """Simule une erreur 500 avec rollback DB"""
+    # Force une erreur de base de données
+    db.session.rollback()
+    raise Exception("Erreur serveur intentionnelle pour test")
+
+@bp.route('/test/403')
+def test_403():
+    """Simule une erreur 403"""
+    abort(403)
+
+@bp.route('/test/400')
+def test_400():
+    """Simule une erreur 400"""
+    abort(400)
+
+@bp.route('/test/errors')
+def test_errors_list():
+    """Liste de tous les tests disponibles"""
+    return render_template('test_errors.html')
