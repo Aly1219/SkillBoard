@@ -6,7 +6,6 @@ from datetime import datetime
 from sqlalchemy import select, delete
 import uuid
 import app.calculs as calculs
-import app.pdf as pdf
 import io # permet de gérer des flux d'E/S, pour écrire avec des données en byte(str). 
 
 # On définit un blueprint nommé 'main'
@@ -455,23 +454,22 @@ def save_vote_guest(token):
     </div>
     """
     
-# --- CALCULS STATS + PDF EN CACHE ---
-@bp.route('/entretien/<int:entretien_id>/pdf')
+
+# --- ROUTE RAPPORT ENTRETIEN ---
+@bp.route('/entretien/<int:entretien_id>/rapport')
 @login_required
-def entretien_pdf(entretien_id):
-    key = f"pdf:{entretien_id}"
-    pdf_bytes = cache.get(key)
-
-    if pdf_bytes is None:
-        entretien = db.session.get(Entretien, entretien_id)
-        if not entretien:
-            abort(404)
-        stats = calculs.calculer_stat(entretien.evaluations)  # ✅ Passer entretien.evaluations
-        pdf_bytes = pdf.generer_rapport(entretien, stats)
-        cache.set(key, pdf_bytes, timeout=3600)  # 1h
-
-    return send_file(io.BytesIO(pdf_bytes),
-                     mimetype="application/pdf",
-                     # Possible modif depuis un onglet de configuration
-                     as_attachment=False,
-                     download_name=f"rapport_{entretien_id}.pdf")
+def rapport_entretien(entretien_id):
+    """
+    Affiche le rapport d'entretien en HTML
+    """
+    entretien = db.session.get(Entretien, entretien_id)
+    if not entretien:
+        abort(404)
+    
+    # ✅ Calcule les stats
+    stats = calculs.calculer_stat(entretien.evaluations)
+    
+    # ✅ Passe au template
+    return render_template('rapport.html', 
+                          entretien=entretien, 
+                          stats=stats)

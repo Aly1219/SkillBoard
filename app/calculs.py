@@ -12,7 +12,8 @@ def calculer_stat(evaluations):
         n2 = eva.note_recruteur2 or 0
         
         moyenne = (n1 + n2) / 2
-        ecart = abs(n1 - n2)
+        ecart_moy_pal = eva.palier - moyenne
+        ecart_rec = abs(n1 - n2)
         palier = eva.palier or 0
         
         atteint_palier = moyenne >= palier
@@ -23,11 +24,13 @@ def calculer_stat(evaluations):
             "note_rh": n1,
             "note_rec2": n2,
             "moyenne": moyenne,
-            "ecart": ecart,
-            "alerte": ecart > 2,
+            "ecart": ecart_moy_pal,
+            "ecart_votes": ecart_rec,
+            "alerte": ecart_palier > 0,
+            "alerte_recr": ecart_rec > 0,
             "atteint_palier": atteint_palier,
             "ecart_palier": ecart_palier,
-            "palier": palier  # ✅ Inclus dans les résultats
+            "palier": palier
         })
         
         total_moyenne += moyenne
@@ -36,7 +39,7 @@ def calculer_stat(evaluations):
     # ====================================================
     # ANALYSES COMPLÉMENTAIRES
     # ====================================================
-    score_global = total_moyenne / count if count > 0 else 0
+    moy_generale = total_moyenne / count if count > 0 else 0
     
     meilleure = max(resultats, key=lambda x: x['moyenne'])
     pire = min(resultats, key=lambda x: x['moyenne'])
@@ -50,8 +53,8 @@ def calculer_stat(evaluations):
     return {
         "details": resultats,
         "details_tries": resultats_tries,
-        "score_global": round(score_global, 2),
-        "palier_moyen": palier_moyen,  # ✅ Pour affichage dans le PDF
+        "moy_generale": round(moy_generale, 2),
+        "palier_moyen": palier_moyen,
         
         "meilleure_competence": meilleure['competence'],
         "meilleure_note": round(meilleure['moyenne'], 2),
