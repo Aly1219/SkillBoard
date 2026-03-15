@@ -6,15 +6,30 @@ def calculer_stat(evaluations):
     resultats = []
     total_moyenne = 0
     count = 0
+
+    if not evaluations:
+        return {
+            "details": [],
+            "details_tries": [],
+            "moy_generale": 0,
+            "palier_moyen": 0,
+            "meilleure_competence": "N/A",
+            "meilleure_note": 0,
+            "pire_competence": "N/A",
+            "pire_note": 0,
+            "competences_sous_palier": [],
+            "nombre_sous_palier": 0,
+            "pourcentage_sous_palier": 0,
+        }
     
     for eva in evaluations:
         n1 = eva.note_rh or 0
         n2 = eva.note_recruteur2 or 0
         
         moyenne = (n1 + n2) / 2
-        ecart_moy_pal = eva.palier - moyenne
         ecart_rec = abs(n1 - n2)
         palier = eva.palier or 0
+        ecart_moy_pal = eva.palier - moyenne
         
         atteint_palier = moyenne >= palier
         ecart_palier = moyenne - palier
