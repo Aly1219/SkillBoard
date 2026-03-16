@@ -19,13 +19,17 @@ try:
     print("   📊 API:  http://localhost:5001/api/v1/docs")
     print("="*60 + "\n")
     
-    # Afficher les routes disponibles
-    '''
-    print("📍 Routes disponibles:")
+    # 🔍 DEBUG: Afficher les blueprints enregistrés
+    print("\n📍 Blueprints enregistrés:")
+    for blueprint_name in app.blueprints:
+        print(f"   ✅ {blueprint_name}")
+    
+    print("\n📍 Routes disponibles:")
     for rule in app.url_map.iter_rules():
-        print(f"   {rule.rule} → {rule.endpoint}")
+        if not rule.rule.startswith('/static'):
+            print(f"   {rule.rule} → {rule.endpoint}")
+    
     print()
-    '''
     
     # ✅ CORRECT : Port 5001 pour Docker, host 0.0.0.0
     host = os.getenv('FLASK_HOST', '0.0.0.0')

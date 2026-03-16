@@ -96,6 +96,7 @@ class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     WTF_CSRF_ENABLED = False
+    PROPAGATE_EXCEPTIONS = True  # Permet aux gestionnaires d'erreur de fonctionner
 
 
 config_by_name = {
@@ -104,14 +105,3 @@ config_by_name = {
     'testing': TestingConfig,
     'default': DevelopmentConfig
 }
-
-def get_config():
-    """Retourner la configuration appropriée"""
-    env = os.getenv('FLASK_ENV', 'development')
-    return config_by_name.get(env, config_by_name['default'])
-
-class TestConfig(Config):
-    """Configuration pour les tests"""
-    TESTING = True
-    PROPAGATE_EXCEPTIONS = True  # Permet aux gestionnaires d'erreur de fonctionner
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'

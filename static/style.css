@@ -761,3 +761,329 @@ legend {
     color: #fff;
 }
 
+
+/* ========================================
+   STYLES RAPPORT D'ENTRETIEN
+   ======================================== */
+
+@media print {
+    body { margin: 0; padding: 10px; }
+    .no-print { display: none; }
+    .rapport-container { page-break-inside: avoid; }
+    table { page-break-inside: avoid; }
+    .chart-container { page-break-inside: avoid; }
+}
+
+.rapport-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+.rapport-header {
+    text-align: center;
+    border-bottom: 2px solid #333;
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+}
+
+.rapport-header h1 {
+    margin: 0 0 10px 0;
+    font-size: 24px;
+}
+
+.rapport-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 30px;
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.rapport-info p {
+    margin: 8px 0;
+    line-height: 1.6;
+}
+
+.score-global {
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin: 30px 0;
+}
+
+.rapport-section {
+    margin-bottom: 40px;
+}
+
+.rapport-section h2 {
+    font-size: 18px;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+
+/* ✅ GRAPHIQUES */
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    box-sizing: border-box;
+}
+
+.chart-container canvas {
+    max-height: 100%;
+}
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 30px;
+}
+
+/* Tableau */
+.skills-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.skills-table th {
+    background-color: #34495e;
+    color: white;
+    padding: 12px;
+    text-align: left;
+    font-weight: bold;
+}
+
+.skills-table th.text-center {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.skills-table td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+.skills-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.skills-table tr:hover {
+    background-color: #f0f0f0;
+}
+
+.skills-table td.text-center {
+    text-align: center;
+}
+
+.skills-table .competence-name {
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.skills-table .note {
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 3px;
+}
+
+.skills-table .note.rh {
+    background-color: #e8f4f8;
+    color: #2c3e50;
+}
+
+.skills-table .note.rec2 {
+    background-color: #f0e8f8;
+    color: #2c3e50;
+}
+
+.skills-table .note.average {
+    background-color: #e8f8e8;
+    color: #2c3e50;
+}
+
+.skills-table .palier {
+    background-color: #fff3cd;
+    color: #856404;
+    font-weight: bold;
+}
+
+/* Statistiques */
+.stats-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-box {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 4px solid #3498db;
+}
+
+.stat-box h3 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    color: #666;
+    text-transform: uppercase;
+}
+
+.stat-box .value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.stat-box.alert {
+    border-left-color: #e74c3c;
+}
+
+.stat-box.success {
+    border-left-color: #27ae60;
+}
+
+.stat-box.warning {
+    border-left-color: #f39c12;
+}
+
+/* Alertes et badges */
+.alert {
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 4px;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.badge-danger {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.badge-warning {
+    background-color: #f39c12;
+    color: white;
+}
+
+.badge-success {
+    background-color: #27ae60;
+    color: white;
+}
+
+.badge-info {
+    background-color: #3498db;
+    color: white;
+}
+
+/* Boutons d'impression */
+.print-actions {
+    text-align: center;
+    margin: 30px 0;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 5px;
+}
+
+.print-actions button {
+    padding: 10px 20px;
+    margin: 0 5px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.print-actions button:hover {
+    background-color: #2980b9;
+}
+
+.print-actions button.btn-print {
+    background-color: #27ae60;
+}
+
+.print-actions button.btn-print:hover {
+    background-color: #229954;
+}
+
+.print-actions button.btn-download {
+    background-color: #e74c3c;
+}
+
+.print-actions button.btn-download:hover {
+    background-color: #c0392b;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .rapport-info {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-section {
+        grid-template-columns: 1fr;
+    }
+
+    .rapport-header h1 {
+        font-size: 20px;
+    }
+
+    .score-global {
+        font-size: 24px;
+    }
+
+    .skills-table {
+        font-size: 14px;
+    }
+
+    .skills-table th,
+    .skills-table td {
+        padding: 8px;
+    }
+
+    .print-actions button {
+        display: block;
+        width: 100%;
+        margin: 5px 0;
+    }
+}

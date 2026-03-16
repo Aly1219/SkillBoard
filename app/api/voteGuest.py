@@ -2,56 +2,24 @@
 Routes API pour le blind-voting du 2e recruteur
 Permet à un 2e recruteur d'évaluer un candidat sans voir les notes du RH
 """
-from flask_restx import Resource, Namespace, fields
+from flask_restx import Resource, Namespace
 from app.models import Entretien, Evaluation
 from app import db
+from app.api.schemas import create_common_schemas
+from app.db_helpers import entretien_by_token
 
 # Namespace dédié au voting
 guest_voting_ns = Namespace('voting', description='Blind voting du 2e recruteur')
 
-# Modèles Swagger
-competence_for_voting = guest_voting_ns.model('CompetenceForVoting', {
-    'id': fields.Integer(readonly=True, description='ID de la compétence'),
-    'nom': fields.String(description='Nom de la compétence'),
-    'palier': fields.Integer(description='Palier minimum attendu'),
-    'ponderations': fields.Integer(description='Pondération de la compétence'),
-})
-
-interview_voting_model = guest_voting_ns.model('InterviewForVoting', {
-    'id': fields.Integer(readonly=True, description='ID de l\'entretien'),
-    'candidat_nom': fields.String(description='Nom du candidat'),
-    'candidat_prenom': fields.String(description='Prénom du candidat'),
-    'candidat_complet': fields.String(description='Nom complet du candidat'),
-    'date_entretien': fields.String(description='Date de l\'entretien'),
-    'poste_nom': fields.String(description='Nom du poste'),
-    'competences': fields.List(fields.Nested(competence_for_voting), description='Compétences à évaluer'),
-    'recruteur_rh': fields.String(description='Nom du RH'),
-    'recruteur_secondaire': fields.String(description='Nom du 2e recruteur'),
-})
-
-vote_input = guest_voting_ns.model('VoteInput', {
-    'evaluations': fields.List(
-        fields.Nested(guest_voting_ns.model('EvaluationInput', {
-            'competence_id': fields.Integer(required=True, description='ID de la compétence'),
-            'note': fields.Integer(required=True, description='Note (1-10)')
-        })),
-        required=True,
-        description='Liste des évaluations'
-    )
-})
-
-vote_response = guest_voting_ns.model('VoteResponse', {
-    'success': fields.Boolean(description='Succès de l\'opération'),
-    'message': fields.String(description='Message de confirmation'),
-    'entretien_id': fields.Integer(description='ID de l\'entretien votée'),
-})
+# Créer les schémas pour ce namespace
+schemas = create_common_schemas(guest_voting_ns)
 
 
 @guest_voting_ns.route('/interview/<token>')
 @guest_voting_ns.param('token', 'Token d\'accès au voting')
 class GuestVotingGetAPI(Resource):
     @guest_voting_ns.doc('get_interview_for_voting', description='Récupérer les données d\'un entretien pour le blind voting')
-    @guest_voting_ns.response(200, 'Données de l\'entretien (SANS notes RH)', interview_voting_model)
+    @guest_voting_ns.response(200, 'Données de l\'entretien (SANS notes RH)', schemas['interview_voting_model'])
     @guest_voting_ns.response(404, 'Token invalide ou entretien non trouvé')
     @guest_voting_ns.response(400, 'Entretien déjà complété')
     def get(self, token):
@@ -63,25 +31,18 @@ class GuestVotingGetAPI(Resource):
         
         Le token doit être valide et l'entretien doit être en attente du 2e recruteur.
         """
-        # 1. Vérifier le token
-        entretien = Entretien.query.filter_by(token_recruteur2=token).first()
-        if not entretien:
-            return {
-                'message': 'Entretien non trouvé ou token invalide'
-            }, 404
+        entretien = entretien_by_token(token)
         
-        # 2. Vérifier le statut
+        if not entretien:
+            return {'message': 'Entretien non trouvé ou token invalide'}, 404
+        
         if entretien.statut == "Termine":
-            return {
-                'message': 'Cet entretien est terminé. Le vote a déjà été enregistré.'
-            }, 400
+            return {'message': 'Cet entretien est terminé. Le vote a déjà été enregistré.'}, 400
         
         if entretien.statut != "Attente_Recruteur2":
-            return {
-                'message': f'Cet entretien n\'est pas en attente d\'évaluation (statut: {entretien.statut})'
-            }, 400
+            return {'message': f'Cet entretien n\'est pas en attente d\'évaluation (statut: {entretien.statut})'}, 400
         
-        # 3. Construire la réponse (SANS les notes du RH)
+        # Construire la réponse (SANS les notes du RH)
         competences_data = []
         for eval in entretien.evaluations:
             competences_data.append({
@@ -99,7 +60,7 @@ class GuestVotingGetAPI(Resource):
             'date_entretien': entretien.date_entretien,
             'poste_nom': entretien.poste.nom if entretien.poste else None,
             'competences': competences_data,
-            'recruteur_rh': None,  # On ne montre pas qui a voté
+            'recruteur_rh': None,
             'recruteur_secondaire': entretien.recruteur_secondaire
         }, 200
 
@@ -108,8 +69,8 @@ class GuestVotingGetAPI(Resource):
 @guest_voting_ns.param('token', 'Token d\'accès au voting')
 class GuestVotingSubmitAPI(Resource):
     @guest_voting_ns.doc('submit_guest_votes', description='Soumettre les votes du 2e recruteur')
-    @guest_voting_ns.expect(vote_input)
-    @guest_voting_ns.marshal_with(vote_response, code=200)
+    @guest_voting_ns.expect(schemas['vote_input'])
+    @guest_voting_ns.marshal_with(schemas['vote_response'], code=200)
     @guest_voting_ns.response(400, 'Données invalides ou notes hors limites')
     @guest_voting_ns.response(401, 'Token invalide ou expiré')
     @guest_voting_ns.response(409, 'Vote déjà enregistré')
@@ -122,76 +83,61 @@ class GuestVotingSubmitAPI(Resource):
         
         Les notes doivent être entre 1 et 10.
         """
-        # 1. Vérifier le token
-        entretien = Entretien.query.filter_by(token_recruteur2=token).first()
+        entretien = entretien_by_token(token)
+        
         if not entretien:
             return {
                 'success': False,
-                'message': 'Token invalide ou expiré'
+                'message': 'Entretien non trouvé ou token invalide'
             }, 401
         
-        # 2. Vérifier que l'entretien est en attente
         if entretien.statut == "Termine":
-            return {
-                'success': False,
-                'message': 'Ce vote a déjà été enregistré'
-            }, 409
+            return {'success': False, 'message': 'Ce vote a déjà été enregistré'}, 409
         
         if entretien.statut != "Attente_Recruteur2":
+            return {'success': False, 'message': f'Cet entretien n\'est pas en attente d\'évaluation (statut: {entretien.statut})'}, 400
+        
+        # Traiter les votes
+        data = guest_voting_ns.payload
+        
+        if not data.get('evaluations'):
             return {
                 'success': False,
-                'message': f'Cet entretien n\'est pas en attente d\'évaluation'
+                'message': 'Aucune évaluation fournie'
             }, 400
         
-        # 3. Récupérer les votes
+        for vote_data in data['evaluations']:
+            competence_id = vote_data.get('competence_id')
+            note = vote_data.get('note')
+            
+            # Valider la note
+            try:
+                note_int = int(note)
+                if note_int < 1 or note_int > 10:
+                    return {'success': False, 'message': f'La note doit être entre 1 et 10'}, 400
+            except (ValueError, TypeError):
+                return {'success': False, 'message': 'La note doit être un nombre'}, 400
+            
+            # Trouver l'évaluation correspondante
+            evaluation = Evaluation.query.filter_by(
+                entretien_id=entretien.id,
+                competence_id=competence_id
+            ).first()
+            
+            if evaluation:
+                evaluation.note_recruteur2 = int(note)
+        
+        # Marquer comme terminé et invalider le token
+        entretien.statut = "Termine"
+        entretien.token_recruteur2 = None
+        
         try:
-            data = guest_voting_ns.payload
-            evaluations = data.get('evaluations', [])
-            
-            if not evaluations:
-                return {
-                    'success': False,
-                    'message': 'Au moins une évaluation est requise'
-                }, 400
-            
-            # 4. Valider et enregistrer chaque vote
-            for eval_data in evaluations:
-                competence_id = eval_data.get('competence_id')
-                note = eval_data.get('note')
-                
-                # Valider la note
-                if not isinstance(note, int) or note < 1 or note > 10:
-                    return {
-                        'success': False,
-                        'message': f'Les notes doivent être des entiers entre 1 et 10. Reçu: {note}'
-                    }, 400
-                
-                # Trouver l'évaluation
-                evaluation = Evaluation.query.filter_by(
-                    entretien_id=entretien.id,
-                    competence_id=competence_id
-                ).first()
-                
-                if not evaluation:
-                    return {
-                        'success': False,
-                        'message': f'Compétence ID {competence_id} introuvable pour cet entretien'
-                    }, 400
-                
-                # Enregistrer la note du 2e recruteur
-                evaluation.note_recruteur2 = note
-            
-            # 5. Marquer comme terminé et invalider le token
-            entretien.statut = "Termine"
-            entretien.token_recruteur2 = None
             db.session.commit()
-            
             return {
                 'success': True,
                 'message': 'Votes enregistrés avec succès',
                 'entretien_id': entretien.id
             }, 200
-        
         except Exception as e:
             db.session.rollback()
             return {

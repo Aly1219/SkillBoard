@@ -1,37 +1,25 @@
 """
 Routes d'authentification - API REST
 """
-from flask import session, jsonify
-from flask_restx import Resource, Namespace, fields
-from werkzeug.security import check_password_hash
+from flask import session
+from flask_restx import Resource, Namespace
 from app.models import User
 from app import db
+from app.api.schemas import create_common_schemas
+from app.db_helpers import get_user_by_username
 
 # Créer un namespace pour les routes auth
 auth_ns = Namespace('auth', description='Authentification')
 
-# Modèles pour Swagger
-login_model = auth_ns.model('Login', {
-    'username': fields.String(required=True, description='Nom d\'utilisateur'),
-    'password': fields.String(required=True, description='Mot de passe'),
-})
+# Créer les schémas pour ce namespace
+schemas = create_common_schemas(auth_ns)
 
-register_model = auth_ns.model('Register', {
-    'username': fields.String(required=True, description='Nom d\'utilisateur'),
-    'password': fields.String(required=True, description='Mot de passe'),
-})
-
-login_response = auth_ns.model('LoginResponse', {
-    'success': fields.Boolean(description='Succès de la connexion'),
-    'message': fields.String(description='Message de réponse'),
-    'username': fields.String(description='Nom d\'utilisateur'),
-})
 
 @auth_ns.route('/login')
 class LoginAPI(Resource):
     @auth_ns.doc('login_user', description='Connexion utilisateur')
-    @auth_ns.expect(login_model)
-    @auth_ns.marshal_with(login_response, code=200)
+    @auth_ns.expect(schemas['login_model'])
+    @auth_ns.marshal_with(schemas['login_response'], code=200)
     @auth_ns.response(401, 'Identifiants invalides')
     def post(self):
         """
@@ -40,7 +28,7 @@ class LoginAPI(Resource):
         Permet à un utilisateur de se connecter avec ses identifiants.
         """
         data = auth_ns.payload
-        user = User.query.filter_by(username=data['username']).first()
+        user = get_user_by_username(data['username'])
         
         if not user or not user.check_password(data['password']):
             return {'success': False, 'message': 'Identifiants invalides'}, 401
@@ -56,8 +44,8 @@ class LoginAPI(Resource):
 @auth_ns.route('/register')
 class RegisterAPI(Resource):
     @auth_ns.doc('register_user', description='Créer un nouvel utilisateur')
-    @auth_ns.expect(register_model)
-    @auth_ns.marshal_with(login_response, code=201)
+    @auth_ns.expect(schemas['register_model'])
+    @auth_ns.marshal_with(schemas['login_response'], code=201)
     @auth_ns.response(409, 'Utilisateur existe déjà')
     def post(self):
         """
@@ -67,7 +55,7 @@ class RegisterAPI(Resource):
         """
         data = auth_ns.payload
         
-        if User.query.filter_by(username=data['username']).first():
+        if get_user_by_username(data['username']):
             return {'success': False, 'message': 'Cet utilisateur existe déjà'}, 409
         
         user = User(username=data['username'])
