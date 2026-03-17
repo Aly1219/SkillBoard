@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rapport d'Entretien - {{ entretien.candidat_nom }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='rapport.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <!-- ✅ CHART.JS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -54,7 +54,7 @@
     <!-- ============================================================ -->
     <div class="rapport-section">
         <h2>Détails des Évaluations</h2>
-        <table class="skills-table">
+        <table class="skills-table--rapport">
             <thead>
                 <tr>
                     <th>Compétence</th>
@@ -163,7 +163,7 @@
     {% if alertes %}
     <div class="rapport-section">
         <h2>⚠ Alertes - Divergences d'Évaluateurs</h2>
-        <table class="skills-table">
+        <table class="skills-table--rapport">
             <thead>
                 <tr>
                     <th>Compétence</th>

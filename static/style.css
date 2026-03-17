@@ -1,16 +1,53 @@
-/* --------------- VARIABLES GLOBALES --------------- */
+/* ============================================================
+   STYLE.CSS — Feuille de styles principale
+   ============================================================
+   TABLE DES MATIÈRES
+   1.  VARIABLES GLOBALES
+   2.  BASE & RESET
+   3.  ANIMATIONS
+   4.  AUTHENTIFICATION (login / register)
+   5.  DASHBOARD (index)
+       5a. En-tête & navigation
+       5b. Bouton principal (CTA)
+       5c. Colonnes Postes / Compétences
+       5d. Tableau historique des entretiens
+       5e. Badges de statut
+       5f. Boutons d'actions
+   6.  MODALES & FORMULAIRES
+       6a. Modales
+       6b. Formulaires standards
+       6c. Formulaires avancés (fieldset, recap)
+   7.  PAGE DE CRÉATION D'ENTRETIEN
+   8.  PAGE DE VOTES
+   9.  RAPPORT D'ENTRETIEN
+       9a. Conteneur & en-tête
+       9b. Tableau des compétences
+       9c. Statistiques & alertes
+       9d. Boutons d'impression
+  10.  UTILITAIRES (classes partagées)
+  11.  MEDIA QUERIES & IMPRESSION
+   ============================================================ */
+
+
+/* ============================================================
+   1. VARIABLES GLOBALES
+   ============================================================ */
 :root {
-    --primary-purple: #c065e8;
+    --primary-purple:       #c065e8;
     --primary-purple-hover: #b054d8;
-    --bg-light: #f4f7f6;
-    --bg-white: #ffffff;
-    --text-dark: #1a1a1a;
-    --text-grey: #888888;
-    --radius-btn: 12px;
-    --radius-card: 16px;
-    --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.05);
+    --bg-light:             #f4f7f6;
+    --bg-white:             #ffffff;
+    --text-dark:            #1a1a1a;
+    --text-grey:            #888888;
+    --radius-btn:           12px;
+    --radius-card:          16px;
+    --shadow-soft:          0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
+
+/* ============================================================
+   2. BASE & RESET
+   ============================================================ */
 body {
     font-family: 'Roboto', sans-serif;
     background-color: #ffffff;
@@ -18,7 +55,19 @@ body {
     padding: 40px;
 }
 
-/* --------------- PAGE DE LOGIN / REGISTER --------------- */
+
+/* ============================================================
+   3. ANIMATIONS
+   ============================================================ */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ============================================================
+   4. AUTHENTIFICATION — Login / Register
+   ============================================================ */
 .auth-body {
     display: flex;
     align-items: center;
@@ -39,25 +88,20 @@ body {
     animation: fadeIn 0.5s ease-out;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
+.logo-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
-.logo-area{
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.app-logo{
-  width: 120px;
-  max-width: 70%;
-  height: auto;
-  display: block;
+.app-logo {
+    width: 120px;
+    max-width: 70%;
+    height: auto;
+    display: block;
 }
 
 .logo-area h1 {
@@ -121,24 +165,28 @@ body {
     background-color: var(--primary-purple-hover);
 }
 
-.hint{
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  align-items: center;
-  color: #6b7280;
-  margin-top: 14px;
-  font-size: .92rem;
-  text-align: left;
+.hint {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    align-items: center;
+    color: #6b7280;
+    margin-top: 14px;
+    font-size: .92rem;
+    text-align: left;
 }
 
-/* --------------- DASHBOARD (INDEX) --------------- */
+
+/* ============================================================
+   5. DASHBOARD (index)
+   ============================================================ */
+
+/* --- 5a. En-tête & navigation --- */
 .dashboard-container {
     max-width: 1000px;
     margin: 0 auto;
 }
 
-/* En-tête (titre + bouton déconnexion) */
 header {
     display: flex;
     align-items: center;
@@ -164,7 +212,7 @@ header h1 {
     color: #2196F3;
 }
 
-/* Bouton créer entretien */
+/* --- 5b. Bouton principal (CTA) --- */
 .cta-section {
     margin-bottom: 60px;
     text-align: center;
@@ -173,7 +221,6 @@ header h1 {
 .btn-main-create {
     display: block;
     width: 100%;
-    background-color: #d47df5;
     background: linear-gradient(90deg, #cd76e8 0%, #c46be0 100%);
     color: white;
     border: 1px solid #a35bbd;
@@ -181,7 +228,7 @@ header h1 {
     font-size: 1.1rem;
     border-radius: 12px;
     cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: transform 0.1s ease;
 }
 
@@ -190,15 +237,15 @@ header h1 {
     transform: translate(-2px);
 }
 
-/* Colonnes de contenu {Postes / Compétences} */
+/* --- 5c. Colonnes Postes / Compétences --- */
 .content-grid {
     display: flex;
     justify-content: space-between;
     gap: 50px;
 }
 
-.column { 
-    flex: 1; 
+.column {
+    flex: 1;
 }
 
 .column-header {
@@ -211,10 +258,9 @@ header h1 {
 }
 
 .column header {
-    margin-bottom: 0px;
+    margin-bottom: 0;
 }
 
-/* Bouton ajouter (un poste ou une compétence) */
 .btn-icon-add {
     background-color: #eee;
     color: #555;
@@ -236,7 +282,6 @@ header h1 {
     transform: scale(1.1);
 }
 
-/* Liste des postes */
 .job-list {
     list-style: none;
 }
@@ -284,15 +329,16 @@ header h1 {
     height: fit-content;
 }
 
-/* Zone détails compétences */
 .skills-table h3 {
     color: #d47df5;
     margin-bottom: 15px;
 }
+
 .skill-list li {
     list-style-type: disc;
     padding-left: 20px;
 }
+
 .placeholder-text {
     color: #aaa;
     font-style: italic;
@@ -300,7 +346,6 @@ header h1 {
     margin-top: 50px;
 }
 
-/* Style commun pour les éléments de liste (Postes et Compétences) */
 .skill-item {
     display: flex;
     justify-content: space-between;
@@ -321,7 +366,6 @@ header h1 {
     border-left: 4px solid #2196F3;
 }
 
-/* Le bouton Edit discret (Ghost button) */
 .btn-ghost {
     background: transparent;
     border: none;
@@ -337,17 +381,16 @@ header h1 {
     transform: scale(1.1);
 }
 
-/* Fixer la hauteur des zones de liste */
-/* si ça dépasse, on scroll */
-.job-list, 
+/* Hauteur fixe + scroll pour les listes */
+.job-list,
 .skill-list {
-    height: 200px; 
+    height: 200px;
     overflow-y: auto;
     margin-top: 10px;
     padding: 0;
 }
 
-/* Tableau d'historique des entretiens */
+/* --- 5d. Tableau historique des entretiens --- */
 .dashboard-table-section {
     margin-top: 60px;
     border-top: 1px solid #eee;
@@ -359,10 +402,11 @@ header h1 {
     font-size: 1.5rem;
     color: #333;
 }
+
 .table-container {
     background: white;
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     overflow: hidden;
     border: 1px solid #eee;
 }
@@ -372,7 +416,8 @@ header h1 {
     border-collapse: collapse;
 }
 
-.dashboard-table th, .dashboard-table td {
+.dashboard-table th,
+.dashboard-table td {
     padding: 15px 20px;
     text-align: left;
     border-bottom: 1px solid #f0f0f0;
@@ -398,13 +443,15 @@ header h1 {
     background-color: #fcfcfc;
 }
 
-/* Badges de Statut */
+/* --- 5e. Badges de statut --- */
 .badge {
+    display: inline-block;
     padding: 5px 10px;
     border-radius: 20px;
     font-size: 0.75rem;
     font-weight: bold;
     text-transform: uppercase;
+    margin-right: 5px;
 }
 
 .badge-success {
@@ -422,13 +469,18 @@ header h1 {
     color: #0c5460;
 }
 
-/* Boutons d'actions */
+.badge-danger {
+    background-color: #e74c3c;
+    color: white;
+}
+
+/* --- 5f. Boutons d'actions --- */
 .action-cell {
     display: flex;
     gap: 12px;
     justify-content: center;
     align-items: center;
-    white-space: nowrap; /* Empêche les boutons de passer à la ligne */
+    white-space: nowrap;
 }
 
 .btn-action {
@@ -447,51 +499,56 @@ header h1 {
     background: transparent;
 }
 
-/* Style bouton PDF */
 .btn-pdf {
     background-color: #fff;
     border-color: #ddd;
     color: #e74c3c;
 }
+
 .btn-pdf:hover {
     background-color: #e74c3c;
     color: white;
     border-color: #e74c3c;
 }
 
-/* Style bouton Lien */
 .btn-link {
     background-color: #fff;
     border-color: #ddd;
     color: #3498db;
 }
+
 .btn-link:hover {
     background-color: #3498db;
     color: white;
     border-color: #3498db;
 }
 
-/* --- MODALES --- */
+
+/* ============================================================
+   6. MODALES & FORMULAIRES
+   ============================================================ */
+
+/* --- 6a. Modales --- */
 .modal {
-    display: none; 
-    position: fixed; 
-    z-index: 100; 
+    display: none;
+    position: fixed;
+    z-index: 100;
     left: 0;
     top: 0;
-    width: 100%; 
-    height: 100%; 
-    background-color: rgba(0,0,0,0.5);
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
     overflow: auto;
 }
 
 .modal-content {
     background-color: #fefefe;
-    margin: 5% auto; 
+    margin: 5% auto;
     padding: 30px;
     border: 1px solid #888;
     width: 500px;
     border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     max-height: 90vh;
     overflow-y: auto;
 }
@@ -509,12 +566,22 @@ header h1 {
     cursor: pointer;
 }
 
-.close:hover { color: black; }
+.close:hover {
+    color: black;
+}
 
-/* Formulaire */
-.form-group { margin-bottom: 15px; }
-.form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-.form-group input[type="text"], 
+/* --- 6b. Formulaires standards --- */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input[type="text"],
 .form-group input[type="date"],
 .form-group select {
     width: 100%;
@@ -534,6 +601,7 @@ header h1 {
     border: 1px solid #ddd;
     padding: 10px;
 }
+
 .checkbox-group label {
     font-weight: normal;
     display: block;
@@ -550,10 +618,12 @@ header h1 {
     width: 100%;
     font-size: 1rem;
 }
-.btn-submit:hover { background-color: #555; }
 
-/* Style de formulaires avancés */
+.btn-submit:hover {
+    background-color: #555;
+}
 
+/* --- 6c. Formulaires avancés (fieldset, recap, groupe boutons) --- */
 fieldset {
     border: 1px solid #ddd;
     padding: 15px;
@@ -578,7 +648,6 @@ legend {
     margin-bottom: 0;
 }
 
-/* Style du Récapitulatif */
 .recap-box {
     background-color: #f8f9fa;
     border: 1px solid #e9ecef;
@@ -595,14 +664,16 @@ legend {
     border-bottom: 1px solid #eee;
     padding-bottom: 5px;
 }
-.recap-box h3:first-child { margin-top: 0; }
+
+.recap-box h3:first-child {
+    margin-top: 0;
+}
 
 .recap-box p {
     margin-bottom: 8px;
     font-size: 0.95rem;
 }
 
-/* Groupe de boutons (Retour / Confirmer) */
 .btn-group {
     display: flex;
     gap: 15px;
@@ -618,26 +689,33 @@ legend {
     flex: 1;
 }
 
+.btn-secondary:hover {
+    background-color: #bbb;
+}
+
 .btn-confirm {
-    background-color: #28a745; /* Vert pour la validation */
+    background-color: #28a745;
     color: white;
     padding: 12px 20px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    flex: 2; /* Plus large que le bouton retour */
+    flex: 2;
     font-weight: bold;
 }
 
-.btn-confirm:hover { background-color: #218838; }
-.btn-secondary:hover { background-color: #bbb; }
+.btn-confirm:hover {
+    background-color: #218838;
+}
 
-/* --------------- PAGE DE CREATION D'ENTRETIEN --------------- */
+
+/* ============================================================
+   7. PAGE DE CRÉATION D'ENTRETIEN
+   ============================================================ */
 .page-evaluation body {
     background-color: #ffffff;
 }
 
-/* Bloc d'infos candidat */
 .info-block {
     margin-bottom: 50px;
     line-height: 1.8;
@@ -646,7 +724,7 @@ legend {
 }
 
 .info-block strong {
-    font-weight: 500; /* Un peu moins gras que bold standard */
+    font-weight: 500;
     color: #000;
 }
 
@@ -668,11 +746,11 @@ legend {
     color: #222;
 }
 
-/* Tableau */
 .table-wrapper {
     margin-bottom: 40px;
 }
 
+/* Tableau compétences (création d'entretien — style léger) */
 .skills-table {
     width: 100%;
     border-collapse: collapse;
@@ -691,10 +769,6 @@ legend {
     color: #444;
 }
 
-.text-left { text-align: left; }
-.text-center { text-align: center; }
-
-/* Inputs dans le tableau (Palier / Pondération) */
 .input-number {
     width: 50px;
     padding: 8px;
@@ -705,7 +779,6 @@ legend {
     font-family: inherit;
 }
 
-/* Bouton Confirmer + Go-back (style géré en haut dans Dashboard.header) */
 .actions-footer {
     display: flex;
     align-items: center;
@@ -721,27 +794,23 @@ legend {
     font-size: 1rem;
     border-radius: 5px;
     cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     transition: all 0.2s;
 }
 
 .btn-white-confirm:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-color: #ccc;
 }
 
-/* --------------- PAGE DE VOTES --------------- */
 
+/* ============================================================
+   8. PAGE DE VOTES
+   ============================================================ */
 .rating-bar {
     height: 40px;
     border-radius: 8px;
-    background: linear-gradient(
-        to right,
-        #e74c3c,
-        #f39c12,
-        #f1c40f,
-        #2ecc71
-    );
+    background: linear-gradient(to right, #e74c3c, #f39c12, #f1c40f, #2ecc71);
     margin-top: 12px;
     margin-bottom: 50px;
     position: relative;
@@ -762,18 +831,11 @@ legend {
 }
 
 
-/* ========================================
-   STYLES RAPPORT D'ENTRETIEN
-   ======================================== */
+/* ============================================================
+   9. RAPPORT D'ENTRETIEN
+   ============================================================ */
 
-@media print {
-    body { margin: 0; padding: 10px; }
-    .no-print { display: none; }
-    .rapport-container { page-break-inside: avoid; }
-    table { page-break-inside: avoid; }
-    .chart-container { page-break-inside: avoid; }
-}
-
+/* --- 9a. Conteneur & en-tête --- */
 .rapport-container {
     max-width: 900px;
     margin: 0 auto;
@@ -828,7 +890,6 @@ legend {
     color: #2c3e50;
 }
 
-/* ✅ GRAPHIQUES */
 .chart-container {
     position: relative;
     width: 100%;
@@ -851,14 +912,36 @@ legend {
     gap: 30px;
 }
 
-/* Tableau */
-.skills-table {
+.analyse-box {
+    background: #ecf0f1;
+    padding: 15px;
+    border-left: 4px solid #3498db;
+    margin-bottom: 15px;
+    border-radius: 3px;
+}
+
+.analyse-box strong {
+    color: #2c3e50;
+}
+
+.statut-ok {
+    color: #27ae60;
+    font-weight: bold;
+}
+
+.statut-ko {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+/* --- 9b. Tableau des compétences (rapport — style enrichi) --- */
+.skills-table--rapport {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 20px;
 }
 
-.skills-table th {
+.skills-table--rapport th {
     background-color: #34495e;
     color: white;
     padding: 12px;
@@ -866,61 +949,61 @@ legend {
     font-weight: bold;
 }
 
-.skills-table th.text-center {
+.skills-table--rapport th.text-center {
     text-align: center;
     vertical-align: middle;
 }
 
-.skills-table td {
+.skills-table--rapport td {
     padding: 12px;
     border-bottom: 1px solid #ddd;
 }
 
-.skills-table tr:nth-child(even) {
+.skills-table--rapport tr:nth-child(even) {
     background-color: #f9f9f9;
 }
 
-.skills-table tr:hover {
+.skills-table--rapport tr:hover {
     background-color: #f0f0f0;
 }
 
-.skills-table td.text-center {
+.skills-table--rapport td.text-center {
     text-align: center;
 }
 
-.skills-table .competence-name {
+.skills-table--rapport .competence-name {
     font-weight: 500;
     color: #2c3e50;
 }
 
-.skills-table .note {
+.skills-table--rapport .note {
     font-weight: bold;
     padding: 5px 10px;
     border-radius: 3px;
 }
 
-.skills-table .note.rh {
+.skills-table--rapport .note.rh {
     background-color: #e8f4f8;
     color: #2c3e50;
 }
 
-.skills-table .note.rec2 {
+.skills-table--rapport .note.rec2 {
     background-color: #f0e8f8;
     color: #2c3e50;
 }
 
-.skills-table .note.average {
+.skills-table--rapport .note.average {
     background-color: #e8f8e8;
     color: #2c3e50;
 }
 
-.skills-table .palier {
+.skills-table--rapport .palier {
     background-color: #fff3cd;
     color: #856404;
     font-weight: bold;
 }
 
-/* Statistiques */
+/* --- 9c. Statistiques & alertes --- */
 .stats-section {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -948,19 +1031,10 @@ legend {
     color: #2c3e50;
 }
 
-.stat-box.alert {
-    border-left-color: #e74c3c;
-}
+.stat-box.alert  { border-left-color: #e74c3c; }
+.stat-box.success { border-left-color: #27ae60; }
+.stat-box.warning { border-left-color: #f39c12; }
 
-.stat-box.success {
-    border-left-color: #27ae60;
-}
-
-.stat-box.warning {
-    border-left-color: #f39c12;
-}
-
-/* Alertes et badges */
 .alert {
     padding: 12px;
     margin: 10px 0;
@@ -985,36 +1059,45 @@ legend {
     border: 1px solid #c3e6cb;
 }
 
-.badge {
-    display: inline-block;
-    padding: 5px 10px;
-    border-radius: 3px;
-    font-size: 12px;
+/* --- 9d. Boutons d'impression --- */
+.actions-toolbar {
+    text-align: center;
+    margin: 30px 0;
+    gap: 10px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
     font-weight: bold;
-    margin-right: 5px;
+    text-decoration: none;
+    display: inline-block;
 }
 
-.badge-danger {
-    background-color: #e74c3c;
-    color: white;
-}
-
-.badge-warning {
-    background-color: #f39c12;
-    color: white;
-}
-
-.badge-success {
+.btn-print {
     background-color: #27ae60;
     color: white;
 }
 
-.badge-info {
-    background-color: #3498db;
+.btn-print:hover {
+    background-color: #229954;
+}
+
+.btn-back {
+    background-color: #95a5a6;
     color: white;
 }
 
-/* Boutons d'impression */
+.btn-back:hover {
+    background-color: #7f8c8d;
+}
+
 .print-actions {
     text-align: center;
     margin: 30px 0;
@@ -1038,14 +1121,6 @@ legend {
     background-color: #2980b9;
 }
 
-.print-actions button.btn-print {
-    background-color: #27ae60;
-}
-
-.print-actions button.btn-print:hover {
-    background-color: #229954;
-}
-
 .print-actions button.btn-download {
     background-color: #e74c3c;
 }
@@ -1054,7 +1129,29 @@ legend {
     background-color: #c0392b;
 }
 
-/* Responsive */
+
+/* ============================================================
+   10. UTILITAIRES (classes partagées)
+   ============================================================ */
+.text-left   { text-align: left; }
+.text-center { text-align: center; }
+.no-print    { /* masqué uniquement en impression — voir section 11 */ }
+
+
+/* ============================================================
+   11. MEDIA QUERIES & IMPRESSION
+   ============================================================ */
+
+/* Impression */
+@media print {
+    body                  { margin: 0; padding: 10px; }
+    .no-print             { display: none; }
+    .rapport-container    { page-break-inside: avoid; }
+    table                 { page-break-inside: avoid; }
+    .chart-container      { page-break-inside: avoid; }
+}
+
+/* Mobile — max 768px */
 @media (max-width: 768px) {
     .rapport-info {
         grid-template-columns: 1fr;
@@ -1072,12 +1169,12 @@ legend {
         font-size: 24px;
     }
 
-    .skills-table {
+    .skills-table--rapport {
         font-size: 14px;
     }
 
-    .skills-table th,
-    .skills-table td {
+    .skills-table--rapport th,
+    .skills-table--rapport td {
         padding: 8px;
     }
 
