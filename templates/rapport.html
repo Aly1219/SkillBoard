@@ -1,32 +1,20 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rapport d'Entretien - {{ entretien.candidat_nom }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <!-- ✅ CHART.JS -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
+{% extends "base.html" %}
 
+{% block title %}Rapport d'Entretien - {{ entretien.candidat_nom }}{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
 <div class="rapport-container">
+
     <!-- ============================================================ -->
     <!-- EN-TÊTE -->
     <!-- ============================================================ -->
     <div class="rapport-header">
         <h1>Rapport d'Entretien</h1>
-        <p style="margin: 5px 0; color: #666;">
-            {% if entretien.date_entretien %}
-                {% if entretien.date_entretien is string %}
-                    {{ entretien.date_entretien }}
-                {% else %}
-                    {{ entretien.date_entretien.strftime('%d/%m/%Y') }}
-                {% endif %}
-            {% else %}
-                N/A
-            {% endif %}
-        </p>
+        <p>{{ entretien.date_entretien.strftime('%d/%m/%Y') if entretien.date_entretien else 'N/A' }}</p>
     </div>
 
     <!-- ============================================================ -->
@@ -34,11 +22,12 @@
     <!-- ============================================================ -->
     <div class="rapport-info">
         <div>
-            <p><strong>Candidat :</strong><br>{{ entretien.candidat_nom }} {{ entretien.candidat_prenom }}</p>
+            <p><strong>Candidat :</strong><br>
+               {{ entretien.candidat_nom }} {{ entretien.candidat_prenom }}</p>
             <p><strong>Poste :</strong><br>{{ entretien.poste.nom }}</p>
         </div>
         <div>
-            <p><strong>Recruteurs :</strong><br>RH & {{ entretien.recruteur_secondaire }}</p>
+            <p><strong>Recruteurs :</strong><br>RH &amp; {{ entretien.recruteur_secondaire }}</p>
         </div>
     </div>
 
@@ -70,10 +59,10 @@
                     <td class="text-center"><strong>{{ "%.1f"|format(detail.moyenne) }}/10</strong></td>
                     <td class="text-center">{{ detail.palier }}/10</td>
                     <td class="text-center">
-                        {% if detail.ecart > 0 %}
-                            <span style="color: #e74c3c; font-weight: bold;">{{ detail.ecart }}</span>
+                        {% if detail.atteint_palier %}
+                            <span class="statut-ok">{{ "%.1f"|format(detail.ecart_palier) }}</span>
                         {% else %}
-                            <span style="color: #27ae60; font-weight: bold;">{{ detail.ecart }}</span>
+                            <span class="statut-ko">{{ "%.1f"|format(detail.ecart_palier) }}</span>
                         {% endif %}
                     </td>
                 </tr>
@@ -85,89 +74,85 @@
     <!-- ============================================================ -->
     <!-- GRAPHIQUES -->
     <!-- ============================================================ -->
-    <div class="rapport-section" style="page-break-before: always;">        
+    <div class="rapport-section" style="page-break-before: always;">
         <div class="charts-grid">
-            <!-- Graphique 1: Radar -->
-             <h2>📊 Performance vs Palier</h2>
+            <h2>Performance vs Palier</h2>
             <div class="chart-container">
                 <canvas id="chartRadar"></canvas>
             </div>
-            
-            <!-- Graphique 2: Barres horizontales -->
-            <h2>📊 Classement des Compétences</h2>
+
+            <h2>Classement des Compétences</h2>
             <div class="chart-container">
                 <canvas id="chartPyramid"></canvas>
             </div>
         </div>
     </div>
 
-
     <!-- ============================================================ -->
     <!-- ANALYSES -->
     <!-- ============================================================ -->
     <div class="rapport-section" style="page-break-before: always;">
         <h2>Analyses</h2>
-        
+
         <div class="analyse-box">
-            <strong>✓ Meilleure Compétence :</strong><br>
+            <strong>Meilleure compétence :</strong><br>
             {{ stats.meilleure_competence }} ({{ stats.meilleure_note }}/10)
         </div>
 
         <div class="analyse-box">
-            <strong>⚠ À Améliorer :</strong><br>
+            <strong>À améliorer :</strong><br>
             {{ stats.pire_competence }} ({{ stats.pire_note }}/10)
         </div>
 
         {% if stats.competences_sous_palier %}
         <div class="analyse-box" style="border-left-color: #e74c3c;">
-            <strong style="color: #e74c3c;">✗ Sous le Palier :</strong><br>
-            {{ stats.nombre_sous_palier }} / {{ stats.details|length }} compétences ({{ stats.pourcentage_sous_palier }}%)
+            <strong class="statut-ko">Sous le palier :</strong><br>
+            {{ stats.nombre_sous_palier }} / {{ stats.details|length }} compétences
+            ({{ stats.pourcentage_sous_palier }}%)
 
-            <p style="margin-bottom: 4px;"><strong>Différence importante :</strong></p>
-            <ul style="margin: 0 0 8px 20px;">
+            <p><strong>Différence importante (&gt; 1 point) :</strong></p>
+            <ul>
                 {% for comp in stats.competences_sous_palier %}
                 {% if (comp.palier - comp.moyenne) > 1 %}
-                    <li>{{ comp.competence }}: {{ "%.1f"|format(comp.moyenne) }}/10 
-                        (manque {{ "%.1f"|format(comp.palier - comp.moyenne) }})
-                    </li>
+                <li>{{ comp.competence }} : {{ "%.1f"|format(comp.moyenne) }}/10
+                    (manque {{ "%.1f"|format(comp.palier - comp.moyenne) }})
+                </li>
                 {% endif %}
                 {% endfor %}
             </ul>
 
-            <em style="color: #777;">
-            <p style="margin-bottom: 4px;"><strong>Différence relative :</strong></p>
-            <ul style="margin: 0 0 8px 20px;">
+            <p><strong>Différence relative (≤ 1 point) :</strong></p>
+            <ul>
                 {% for comp in stats.competences_sous_palier %}
                 {% if (comp.palier - comp.moyenne) <= 1 %}
-                    <li>{{ comp.competence }}: {{ "%.1f"|format(comp.moyenne) }}/10 
-                        (manque {{ "%.1f"|format(comp.palier - comp.moyenne) }})
-                    </li>
+                <li>{{ comp.competence }} : {{ "%.1f"|format(comp.moyenne) }}/10
+                    (manque {{ "%.1f"|format(comp.palier - comp.moyenne) }})
+                </li>
                 {% endif %}
                 {% endfor %}
             </ul>
-            </em>
-
         </div>
+
         {% else %}
         <div class="analyse-box" style="border-left-color: #27ae60;">
-            <strong style="color: #27ae60;">✓ Toutes Compétences Atteintes !</strong><br>
+            <strong class="statut-ok">Toutes les compétences sont au-dessus du palier !</strong><br>
             Le candidat respecte tous les paliers définis.
         </div>
         {% endif %}
     </div>
 
     <!-- ============================================================ -->
-    <!-- ALERTES (si divergences) -->
+    <!-- ALERTES — divergences entre recruteurs -->
     <!-- ============================================================ -->
     {% set alertes = stats.details|selectattr('alerte_recr')|list %}
     {% if alertes %}
     <div class="rapport-section">
-        <h2>⚠ Alertes - Divergences d'Évaluateurs</h2>
+        <h2>Alertes — Divergences d'évaluateurs</h2>
         <table class="skills-table--rapport">
             <thead>
                 <tr>
                     <th>Compétence</th>
-                    <th class="text-center">Écart</th>
+                    <th class="text-center">Écart entre recruteurs</th>
                     <th class="text-center">Palier</th>
                 </tr>
             </thead>
@@ -175,12 +160,12 @@
                 {% for detail in alertes %}
                 <tr>
                     <td>{{ detail.competence }}</td>
-                    <td class="text-center">{{ detail.ecart_votes}}</td>
+                    <td class="text-center">{{ detail.ecart_votes }}</td>
                     <td class="text-center">
-                        {% if detail.ecart > 0 %}
-                            <span style="color: #e74c3c; font-weight: bold;">Non atteint</span>
+                        {% if detail.atteint_palier %}
+                            <span class="statut-ok">Atteint</span>
                         {% else %}
-                            <span style="color: #27ae60; font-weight: bold;"> Atteint</span>
+                            <span class="statut-ko">Non atteint</span>
                         {% endif %}
                     </td>
                 </tr>
@@ -195,124 +180,92 @@
     <!-- ============================================================ -->
     <div class="actions-toolbar no-print">
         <button class="btn btn-print" onclick="window.print()">
-            🖨️ Imprimer / PDF
+            Imprimer / PDF
         </button>
         <a href="{{ url_for('main.home') }}" class="btn btn-back">
-            ← Retour au Dashboard
+            Retour au Dashboard
         </a>
     </div>
 
 </div>
+{% endblock %}
 
-<!-- ============================================================ -->
-<!-- SCRIPTS POUR LES GRAPHIQUES -->
-<!-- ============================================================ -->
+{% block scripts %}
 <script>
-    // Données depuis Jinja2
-    const allDetails = JSON.parse('{{ stats.details|tojson|safe }}');
+    // @ts-nocheck
+    const allDetails  = {{ stats.details | tojson | safe }};
     const competences = allDetails.map(d => d.competence);
-    const moyennes = allDetails.map(d => parseFloat(d.moyenne));
-    const paliers = allDetails.map(d => parseInt(d.palier));
-    const ecarts = allDetails.map(d => parseFloat(d.ecart));
+    const moyennes    = allDetails.map(d => parseFloat(d.moyenne));
+    const paliers     = allDetails.map(d => parseInt(d.palier));
 
-    // Variable pour stocker les instances de chart
-    let charts = [];
+    document.addEventListener('DOMContentLoaded', function() {
 
-    // Fonction pour créer les graphiques
-    function initCharts() {
-        // ✅ GRAPHIQUE 1 : RADAR (Performance vs Palier)
-        const ctxRadar = document.getElementById('chartRadar');
-        if (ctxRadar) {
-            charts[0] = new Chart(ctxRadar.getContext('2d'), {
-                type: 'radar',
-                data: {
-                    labels: competences,
-                    datasets: [
-                        {
-                            label: 'Performance',
-                            data: moyennes,
-                            borderColor: '#3498db',
-                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                            borderWidth: 2,
-                            pointRadius: 4,
-                            pointBackgroundColor: '#3498db'
-                        },
-                        {
-                            label: 'Palier',
-                            data: paliers,
-                            borderColor: '#e74c3c',
-                            backgroundColor: 'rgba(231, 76, 60, 0.05)',
-                            borderWidth: 2,
-                            borderDash: [5, 5],
-                            pointRadius: 4,
-                            pointBackgroundColor: '#e74c3c'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    scales: {
-                        r: {
-                            min: 0,
-                            max: 10,
-                            ticks: { stepSize: 2 }
-                        }
+        // Graphique 1 : Radar — Performance vs Palier
+        new Chart(document.getElementById('chartRadar').getContext('2d'), {
+            type: 'radar',
+            data: {
+                labels: competences,
+                datasets: [
+                    {
+                        label: 'Performance',
+                        data: moyennes,
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52,152,219,0.1)',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#3498db'
                     },
-                    plugins: {
-                        legend: { display: true, position: 'top' },
+                    {
+                        label: 'Palier',
+                        data: paliers,
+                        borderColor: '#e74c3c',
+                        backgroundColor: 'rgba(231,76,60,0.05)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 4,
+                        pointBackgroundColor: '#e74c3c'
                     }
-                }
-            });
-        }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: { r: { min: 0, max: 10, ticks: { stepSize: 2 } } },
+                plugins: { legend: { position: 'top' } }
+            }
+        });
 
-        // ✅ GRAPHIQUE 2 : BARRES HORIZONTALES (Classement)
-        const sorted_indices = moyennes.map((val, idx) => idx).sort((a, b) => moyennes[b] - moyennes[a]);
-        const sorted_competences = sorted_indices.map(i => competences[i]);
-        const sorted_moyennes = sorted_indices.map(i => moyennes[i]);
-        const sorted_paliers = sorted_indices.map(i => paliers[i]);
+        // Graphique 2 : Barres horizontales triées par performance
+        const indices = moyennes.map((_, i) => i)
+                                .sort((a, b) => moyennes[b] - moyennes[a]);
 
-        const ctxPyramid = document.getElementById('chartPyramid');
-        if (ctxPyramid) {
-            charts[1] = new Chart(ctxPyramid.getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: sorted_competences,
-                    datasets: [
-                        {
-                            label: 'Performance',
-                            data: sorted_moyennes,
-                            backgroundColor: '#27ae60',
-                            borderColor: '#1e8449',
-                            borderWidth: 1
-                        },
-                        {
-                            label: 'Palier',
-                            data: sorted_paliers,
-                            backgroundColor: 'rgba(231, 76, 60, 0.3)',
-                            borderColor: '#e74c3c',
-                            borderWidth: 2
-                        }
-                    ]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    scales: {
-                        x: { min: 0, max: 10, ticks: { stepSize: 2 }, offset: false }
+        new Chart(document.getElementById('chartPyramid').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: indices.map(i => competences[i]),
+                datasets: [
+                    {
+                        label: 'Performance',
+                        data: indices.map(i => moyennes[i]),
+                        backgroundColor: '#27ae60',
+                        borderColor: '#1e8449',
+                        borderWidth: 1
                     },
-                    plugins: {
-                        legend: { display: true, position: 'top' }
+                    {
+                        label: 'Palier',
+                        data: indices.map(i => paliers[i]),
+                        backgroundColor: 'rgba(231,76,60,0.3)',
+                        borderColor: '#e74c3c',
+                        borderWidth: 2
                     }
-                }
-            });
-        }
-    }
-
-    // Attendre que le DOM soit chargé
-    document.addEventListener('DOMContentLoaded', initCharts);
+                ]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                scales: { x: { min: 0, max: 10, ticks: { stepSize: 2 } } },
+                plugins: { legend: { position: 'top' } }
+            }
+        });
+    });
 </script>
-
-</body>
-</html>
+{% endblock %}

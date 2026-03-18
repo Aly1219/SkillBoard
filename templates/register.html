@@ -1,50 +1,46 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Initialisation - SkillBoard</title>
+{% extends "base.html" %}
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
+{% block title %}Initialisation - SkillBoard{% endblock %}
+{% block body_class %}auth-body{% endblock %}
 
-<body class="auth-body">
+{% block flash_messages %}{% endblock %}
 
-  <div class="auth-card">
+{% block content %}
+<div class="auth-card">
+
     <div class="logo-area">
-      <img src="{{ url_for('static', filename='img/logo.png') }}" alt="SkillBoard" class="app-logo">
-      <h1>Initialisation</h1>
-      <p>Première utilisation : créez le compte administrateur.</p>
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="SkillBoard" class="app-logo">
+        <h1>Initialisation</h1>
+        <p>Première utilisation : créez le compte administrateur.</p>
     </div>
 
     <form method="POST" action="{{ url_for('main.register') }}">
 
-      <div class="input-group">
-        <label for="username">Nom d'utilisateur</label>
-        <div class="input-wrapper">
-          <input id="username" type="text" name="username" placeholder="admin" required>
-          <i class="fas fa-user"></i>
+        <div class="input-group">
+            <label for="username">Nom d'utilisateur</label>
+            <div class="input-wrapper">
+                <input id="username" type="text" name="username"
+                       placeholder="admin" required autofocus>
+                <i class="fas fa-user"></i>
+            </div>
         </div>
-      </div>
 
-      <div class="input-group">
-        <label for="password">Mot de passe</label>
-        <div class="input-wrapper">
-          <input id="password" type="password" name="password" placeholder="••••••••••••" required>
-          <i class="fas fa-lock"></i>
+        <div class="input-group">
+            <label for="password">Mot de passe</label>
+            <div class="input-wrapper">
+                <input id="password" type="password" name="password"
+                       placeholder="••••••••••••" required>
+                <i class="fas fa-lock"></i>
+            </div>
         </div>
-      </div>
 
-      <button type="submit" class="btn-login">Créer le compte</button>
+        <button type="submit" class="btn-login">Créer le compte</button>
 
-      <div class="hint">
-        <i class="fas fa-shield-halved"></i>
-        <span>Ce compte aura les droits administrateur.</span>
-      </div>
+        <div class="hint">
+            <i class="fas fa-shield-halved"></i>
+            <span>Ce compte aura les droits administrateur.</span>
+        </div>
+
     </form>
-  </div>
-
-</body>
-</html>
+</div>
+{% endblock %}

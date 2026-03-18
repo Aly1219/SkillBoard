@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Merci - SkillBoard{% endblock %}
+{% block body_class %}auth-body{% endblock %}
+
+{% block flash_messages %}{% endblock %}
+
+{% block content %}
+<div class="auth-card">
+    <div class="logo-area">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="SkillBoard" class="app-logo">
+        <h1>Merci !</h1>
+        <p>Votre évaluation a bien été enregistrée.<br>Vous pouvez fermer cette fenêtre.</p>
+    </div>
+</div>
+{% endblock %}

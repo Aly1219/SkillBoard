@@ -1,534 +1,552 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkillBoard - Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <!-- Ajout de FontAwesome pour de jolies icônes (optionnel mais recommandé) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body>
-    <div class="dashboard-container">      
-        <!-- 1. En-tête -->
-        <header>
-            <h1>Bonjour {{ user }}</h1>
+{% extends "base.html" %}
 
-            <!-- Bouton déconnexion -->
-             <a href="{{ url_for('main.logout') }}" class="btn-go-back" title="Se déconnecter">
-                <i class="fas fa-sign-out-alt"></i>
-             </a>
-        </header>
+{% block title %}SkillBoard - Dashboard{% endblock %}
 
-        <!-- 2. Bouton créer entretien -->
-        <div class="cta-section">
-            <button class="btn-main-create">
-                Créer un entretien
-            </button>
+{% block content %}
+<div class="dashboard-container">
+
+    <!-- 1. En-tête -->
+    <header>
+        <h1>Bonjour {{ user }}</h1>
+        <a href="{{ url_for('main.logout') }}" class="btn-go-back" title="Se déconnecter">
+            <i class="fas fa-sign-out-alt"></i>
+        </a>
+    </header>
+
+    <!-- 2. Bouton créer entretien -->
+    <div class="cta-section">
+        <button class="btn-main-create">Créer un entretien</button>
+    </div>
+
+    <!-- 3. Deux colonnes (Postes / Compétences) -->
+    <main class="content-grid">
+
+        <!-- Colonne Gauche : Postes -->
+        <div class="column">
+            <div class="column-header">
+                <h2>Postes</h2>
+                <button class="btn-icon-add" onclick="openModal('modalPoste')">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            <ul class="job-list">
+                {% for job in jobs %}
+                <li onclick="selectJob(this, '{{ job.id }}')"
+                    class="list-item" id="job-{{ job.id }}">
+                    <span class="job-title">{{ job.nom }}</span>
+                    <button class="btn-ghost"
+                            onclick="event.stopPropagation(); prepareEditPoste('{{ job.id }}')"
+                            title="Modifier">
+                        <i class="fas fa-pen"></i>
+                    </button>
+                </li>
+                {% endfor %}
+            </ul>
         </div>
 
-        <!-- 3. Deux colonnes (Postes / Compétences)-->
-        <main class="content-grid">
-            <!-- Colonne Gauche : Postes -->
-            <div class="column">
-                <div class="column-header">
-                    <h2>Postes</h2>
-                    <!-- Bouton + -->
-                    <button class="btn-icon-add" onclick="openModal('modalPoste')"><i class="fas fa-plus"></i></button>
-                </div>
-                <ul class="job-list">
-                    {% for job in jobs %}
-                    <!-- On ajoute la classe 'list-item' pour le style CSS -->
-                    <li onclick="selectJob(this, '{{ job.id }}')" class="list-item" id="job-{{ job.id }}">
-                        <span class="job-title">{{ job.nom }}</span>
-                        
-                        <!-- Bouton Edit discret -->
-                        <button class="btn-ghost" 
-                                onclick="event.stopPropagation(); prepareEditPoste('{{ job.id }}')" 
-                                title="Modifier">
-                            <i class="fas fa-pen"></i>
-                        </button>
-                    </li>
-                    {% endfor %}
-                </ul>
+        <!-- Colonne Droite : Compétences -->
+        <div class="column">
+            <div class="column-header">
+                <h2>Compétences</h2>
+                <button class="btn-icon-add" onclick="openModal('modalCompetence')">
+                    <i class="fas fa-plus"></i>
+                </button>
             </div>
+            <ul class="skill-list">
+                {% for skill in all_skills %}
+                <li class="skill-item" data-id="{{ skill.id }}"
+                    onclick="openEditCompetence('{{ skill.id }}', '{{ skill.nom }}')"
+                    title="Cliquer pour modifier">
+                    <span>{{ skill.nom }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+            <p id="no-skills-msg" style="display:none; color:#777; padding:10px; font-style:italic;">
+                Aucune compétence liée à ce poste.
+            </p>
+        </div>
 
-            <!-- Colonne Droite : Compétences -->
-            <div class="column">
-                <div class="column-header">
-                    <h2>Compétences</h2>
-                    <!-- Bouton + -->
-                    <button class="btn-icon-add" onclick="openModal('modalCompetence')"><i class="fas fa-plus"></i></button>
-                </div>
-                <!-- Liste complète des compétences -->
-                <ul class="skill-list">
-                    {% for skill in all_skills %}
-                    <!-- On met l'ID de la compétence dans un attribut data-id pour le filtrage JS -->
-                    <li class="skill-item" data-id="{{ skill.id }}">
-                        <span>{{ skill.nom }}</span>
-                    </li>
-                    {% endfor %}
-                </ul>
-                <!-- Petit message si la liste est vide après filtrage -->
-                <p id="no-skills-msg" style="display:none; color:#777; padding:10px; font-style:italic;">
-                    Aucune compétence liée à ce poste.
-                </p>
-            </div>
-        </main>
+    </main>
 
-        <!-- 4. Tableau de suivi des entretiens -->
-        <section class="dashboard-table-section">
-            <h2>Dashboard Entretiens</h2>
-            
-            <div class="table-container">
-                <table class="dashboard-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Candidat.e</th>
-                            <th>Poste</th>
-                            <th>Statut</th>
-                            <th class="action-col">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for ent in entretiens %}
-                        <tr>
-                            <!-- 1. DATE -->
-                            <td>{{ ent.date_entretien }}</td>
-                            
-                            <!-- 2. CANDIDAT -->
-                            <td><strong>{{ ent.candidat_nom }}</strong> {{ ent.candidat_prenom }}</td>
-                            
-                            <!-- 3. POSTE -->
-                            <td>{{ ent.poste.nom }}</td>
-                            
-                            <!-- 4. STATUT -->
-                            <td>
+    <!-- 4. Tableau de suivi des entretiens -->
+    <section class="dashboard-table-section">
+        <h2>Dashboard Entretiens</h2>
+        <div class="table-container">
+            <table class="dashboard-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Candidat·e</th>
+                        <th>Poste</th>
+                        <th>Statut</th>
+                        <th class="action-col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ent in entretiens %}
+                    <tr>
+                        <td>{{ ent.date_entretien.strftime('%d/%m/%Y') if ent.date_entretien else 'N/A' }}</td>
+                        <td><strong>{{ ent.candidat_nom }}</strong> {{ ent.candidat_prenom }}</td>
+                        <td>{{ ent.poste.nom }}</td>
+                        <td>
+                            {% if ent.statut == 'Termine' %}
+                                <span class="badge badge-success">Terminé</span>
+                            {% elif ent.statut == 'Attente_Recruteur2' %}
+                                <span class="badge badge-warning">Attente recruteur n°2</span>
+                            {% elif ent.statut == 'Attente_RH' %}
+                                <span class="badge badge-warning">Attente RH</span>
+                            {% else %}
+                                <span class="badge badge-info">Créé</span>
+                            {% endif %}
+                        </td>
+                        <td class="action-cell">
+                            <div>
                                 {% if ent.statut == 'Termine' %}
-                                    <span class="badge badge-success">Terminé</span>
-                                {% elif ent.statut == 'Attente_Recruteur2' %}
-                                    <span class="badge badge-warning">Attente recruteur n°2</span>
-                                {% elif ent.statut == 'Attente_RH' %}
-                                    <span class="badge badge-warning">Attente RH</span>
-                                {% else %}
-                                    <span class="badge badge-info">Créé</span>
-                                {% endif %}
-                            </td>
+                                    <a href="{{ url_for('main.rapport_entretien', entretien_id=ent.id) }}"
+                                       class="btn-action btn-pdf" title="Voir le rapport">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </a>
 
-                            <!-- 5. ACTIONS -->
-                            <td class="action-cell">
-                                <div>
-                                    
-                                    <!-- A) BOUTON PRINCIPAL (Selon statut) -->
-                                    {% if ent.statut == 'Termine' %}
-                                        <!-- Cas Terminé : Rapport PDF -->
-                                        <a href="{{ url_for('main.rapport_entretien', entretien_id=ent.id) }}" class="btn-action btn-pdf" title="Télécharger le rapport" style="color: #444;">
-                                            <i class="fas fa-file-pdf"></i> PDF
-                                        </a>
-                                    
-                                    {% elif ent.statut == 'Attente_Recruteur2' %}
-                                        <!-- Cas Attente : Lien à copier -->
-                                        <button 
-                                            class="btn-action btn-link" 
+                                {% elif ent.statut == 'Attente_Recruteur2' %}
+                                    <button class="btn-action btn-link"
                                             title="Copier le lien pour le 2e recruteur"
                                             data-link="{{ url_for('main.vote_guest', token=ent.token_recruteur2, _external=True) }}"
-                                            onclick="copyLinkFromData(this)"
-                                            style="background:none; border:none; cursor:pointer; color:#444;">
-                                            <i class="fas fa-link"></i> Lien
-                                        </button>
-                                    
-                                    {% elif ent.statut == 'Attente_RH' %}
-                                        <!-- Cas À faire : Commencer l'évaluation -->
-                                        <a href="{{ url_for('main.page_vote_rh', entretien_id=ent.id) }}" class="btn-action" title="Commencer l'évaluation" style="color: #ffbd38e8;">
-                                            <i class="fas fa-play"></i>
-                                        </a>
-                                    
-                                    {% else %}
-                                        <!-- Cas Créé : Paramétrer les compétences -->
-                                        <a href="{{ url_for('main.page_evaluation', entretien_id=ent.id) }}" class="btn-action" title="Poursuivre l'évaluation" style="color: #2196F3;">
-                                            <i class="fas fa-gear"></i>
-                                        </a>
-                                    {% endif %}
+                                            onclick="copyLinkFromData(this)">
+                                        <i class="fas fa-link"></i> Lien
+                                    </button>
 
-                                    <!-- B) BOUTON SUPPRIMER (Toujours là) -->
-                                    <form method="post" action="{{ url_for('main.delete_interview', entretien_id=ent.id) }}">
-                                        <button type="submit" class="btn-action" title="Supprimer cet entretien" onclick="return confirm('Attention : Voulez-vous vraiment supprimer cet entretien ?');" style="color: #e57373;">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="5" class="text-center">Aucun entretien pour le moment.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                {% elif ent.statut == 'Attente_RH' %}
+                                    <a href="{{ url_for('main.page_vote_rh', entretien_id=ent.id) }}"
+                                       class="btn-action" title="Commencer l'évaluation" style="color:#ffbd38;">
+                                        <i class="fas fa-play"></i>
+                                    </a>
+
+                                {% else %}
+                                    <a href="{{ url_for('main.page_evaluation', entretien_id=ent.id) }}"
+                                       class="btn-action" title="Paramétrer l'entretien" style="color:#2196F3;">
+                                        <i class="fas fa-gear"></i>
+                                    </a>
+                                {% endif %}
+
+                                <form method="post"
+                                      action="{{ url_for('main.delete_interview', entretien_id=ent.id) }}">
+                                    <button type="submit" class="btn-action" title="Supprimer"
+                                            onclick="return confirm('Voulez-vous vraiment supprimer cet entretien ?');"
+                                            style="color:#e57373;">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center">Aucun entretien pour le moment.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODALE 1 : AJOUTER POSTE -->
+<!-- ============================================================ -->
+<div id="modalPoste" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('modalPoste')">&times;</span>
+        <h2>Nouveau Poste</h2>
+        <form action="{{ url_for('main.add_poste') }}" method="POST">
+            <div class="form-group">
+                <label>Nom du poste</label>
+                <input type="text" name="nom_poste" required placeholder="Ex: Secrétaire">
             </div>
-        </section>
+            <div class="form-group">
+                <label>Lier des compétences existantes</label>
+                <div class="checkbox-group">
+                    {% for skill in all_skills %}
+                    <label>
+                        <input type="checkbox" name="competences" value="{{ skill.id }}"> {{ skill.nom }}
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            <button type="submit" class="btn-submit">Créer le poste</button>
+        </form>
     </div>
+</div>
 
-    <!-- --- MODALE 1 : AJOUTER POSTE --- -->
-    <div id="modalPoste" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('modalPoste')">&times;</span>
-            <h2>Nouveau Poste</h2>
-            <form action="/add_poste" method="POST">
-                <div class="form-group">
-                    <label>Nom du poste</label>
-                    <input type="text" name="nom_poste" required placeholder="Ex: Secrétaire">
-                </div>
-                <!-- On réutilise la liste des compétences existantes -->
-                <div class="form-group">
-                    <label>Lier des compétences existantes</label>
-                    <div class="checkbox-group">
-                        {% for skill in all_skills %}
-                        <label>
-                            <input type="checkbox" name="competences" value="{{ skill.id }}"> {{ skill.nom }}
-                        </label>
-                        {% endfor %}
-                    </div>
-                </div>
-                <button type="submit" class="btn-submit">Créer le poste</button>
-            </form>
-        </div>
+<!-- ============================================================ -->
+<!-- MODALE 2 : AJOUTER COMPÉTENCE -->
+<!-- ============================================================ -->
+<div id="modalCompetence" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('modalCompetence')">&times;</span>
+        <h2>Nouvelle Compétence</h2>
+        <form action="{{ url_for('main.add_competence') }}" method="POST">
+            <div class="form-group">
+                <label>Nom de la compétence</label>
+                <input type="text" name="nom_competence" required
+                       placeholder="Ex: Excel, Français parlé...">
+            </div>
+            <button type="submit" class="btn-submit">Ajouter la compétence</button>
+        </form>
     </div>
+</div>
 
-    <!-- --- MODALE 2 : AJOUTER COMPÉTENCE --- -->
-    <div id="modalCompetence" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('modalCompetence')">&times;</span>
-            <h2>Nouvelle Compétence</h2>
-            <form action="/add_competence" method="POST">
-                <div class="form-group">
-                    <label>Nom de la compétence</label>
-                    <input type="text" name="nom_competence" required placeholder="Ex: Excel, Français parlé, Français écrit...">
-                </div>
-                <button type="submit" class="btn-submit">Ajouter la compétence</button>
-            </form>
-        </div>
-    </div>
+<!-- ============================================================ -->
+<!-- MODALE 3 : CRÉER UN ENTRETIEN -->
+<!-- ============================================================ -->
+<div id="modalInterview" class="modal">
+    <div class="modal-content large-modal">
+        <span class="close" onclick="closeModal('modalInterview')">&times;</span>
 
-    <!-- --- MODALE 3 : CRÉER UN ENTRETIEN (FORMULAIRE) --- -->
-    <div id="modalInterview" class="modal">
-        <div class="modal-content large-modal">
-            <span class="close" onclick="closeModal('modalInterview')">&times;</span>
-            
-            <form id="interviewForm" action="/create_interview" method="POST">
-                <!-- ÉTAPE 1 : LE FORMULAIRE -->
-                <div id="interview-step-1">
-                    <h2>Créer un nouvel entretien</h2>
-                        
-                        <!-- Section Candidat -->
-                        <fieldset>
-                            <legend>Candidat</legend>
-                            <div class="form-row">
-                                <div class="form-group half">
-                                    <label>Nom</label>
-                                    <input type="text" id="cand_nom" name="cand_nom" required>
-                                </div>
-                                <div class="form-group half">
-                                    <label>Prénom</label>
-                                    <input type="text" id="cand_prenom" name="cand_prenom" required>
-                                </div>
-                            </div>
-                        </fieldset>
+        <form id="interviewForm" action="{{ url_for('main.create_interview') }}" method="POST">
 
-                        <!-- Section Entretien -->
-                        <fieldset>
-                            <legend>Détails de l'entretien</legend>
-                            <div class="form-row">
-                                <div class="form-group half">
-                                    <label>Date</label>
-                                    <input type="date" id="entr_date" name="entr_date" required>
-                                </div>
-                                <div class="form-group half">
-                                    <label>2ème Recruteur</label>
-                                    <input type="text" id="entr_recruteur" name="entr_recruteur" required>
-                                </div>
-                            </div>
+            <!-- ÉTAPE 1 : Formulaire -->
+            <div id="interview-step-1">
+                <h2>Créer un nouvel entretien</h2>
 
-                            <div class="form-group">
-                                <label>Poste à pourvoir</label>
-                                <select id="entr_poste" name="entr_poste" required>
-                                    <option value="" disabled selected>Choisir un poste...</option>
-                                    {% for job in jobs %}
-                                    <option value="{{ job.nom }}">
-                                        {{ job.nom }}
-                                    </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </fieldset>
-                        
-                        <!-- Bouton Continuer - DANS LA FORM -->
-                        <button type="button" onclick="showConfirmation()" class="btn-submit">Continuer</button>
-                </div>
-
-                <!-- ÉTAPE 2 : LE RÉCAPITULATIF (Caché par défaut) -->
-                <div id="interview-step-2" style="display: none;">
-                    <h2>Vérification des données</h2>
-                    <p class="intro-text">Veuillez vérifier les informations avant de créer l'entretien.</p>
-                    
-                    <div class="recap-box">
-                        <h3>Candidat</h3>
-                        <p><strong>Nom complet :</strong> <span id="recap_nom_complet"></span></p>
-                        
-                        <h3>Entretien</h3>
-                        <p><strong>Date :</strong> <span id="recap_date"></span></p>
-                        <p><strong>Poste :</strong> <span id="recap_poste"></span></p>
-                        <p><strong>2ème Recruteur :</strong> <span id="recap_recruteur"></span></p>
+                <fieldset>
+                    <legend>Candidat</legend>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label>Nom</label>
+                            <input type="text" id="cand_nom" name="cand_nom" required>
+                        </div>
+                        <div class="form-group half">
+                            <label>Prénom</label>
+                            <input type="text" id="cand_prenom" name="cand_prenom" required>
+                        </div>
                     </div>
+                </fieldset>
 
-                    <!-- Boutons - DANS LA FORM -->
-                    <div class="btn-group">
-                        <button type="button" class="btn-secondary" onclick="goBackToStep1()">Modifier</button>
-                        <button type="submit" class="btn-confirm" onclick="confirmInterview()">Confirmer les données</button>
+                <fieldset>
+                    <legend>Détails de l'entretien</legend>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label>Date</label>
+                            <input type="date" id="entr_date" name="entr_date" required>
+                        </div>
+                        <div class="form-group half">
+                            <label>2ème Recruteur</label>
+                            <input type="text" id="entr_recruteur" name="entr_recruteur" required>
+                        </div>
                     </div>
-                </div>
-            </form>
-        </div>
-    </div>
+                    <div class="form-group">
+                        <label>Poste à pourvoir</label>
+                        <select id="entr_poste" name="entr_poste" required>
+                            <option value="" disabled selected>Choisir un poste...</option>
+                            {% for job in jobs %}
+                            <option value="{{ job.nom }}">{{ job.nom }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </fieldset>
 
-    <!-- --- MODALE 4 : ÉDITER UN POSTE --- -->
-    <div id="modalEditPoste" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('modalEditPoste')">&times;</span>
-            <h2>Modifier le Poste</h2>
-            <!-- Action vers une route Flask hypothétique /update_poste -->
-            <form action="/update_poste" method="POST">
-                <!-- ID caché pour identifier le poste à modifier -->
-                <input type="hidden" id="edit_poste_id" name="poste_id">
-                
-                <div class="form-group">
-                    <label>Nom du poste</label>
-                    <input type="text" id="edit_poste_nom" name="nom_poste" required>
+                <button type="button" onclick="showConfirmation()" class="btn-submit">
+                    Continuer
+                </button>
+            </div>
+
+            <!-- ÉTAPE 2 : Récapitulatif -->
+            <div id="interview-step-2" style="display:none;">
+                <h2>Vérification des données</h2>
+                <p>Veuillez vérifier les informations avant de créer l'entretien.</p>
+
+                <div class="recap-box">
+                    <h3>Candidat</h3>
+                    <p><strong>Nom complet :</strong> <span id="recap_nom_complet"></span></p>
+                    <h3>Entretien</h3>
+                    <p><strong>Date :</strong> <span id="recap_date"></span></p>
+                    <p><strong>Poste :</strong> <span id="recap_poste"></span></p>
+                    <p><strong>2ème Recruteur :</strong> <span id="recap_recruteur"></span></p>
                 </div>
-                
-                <div class="form-group">
-                    <label>Modifier les compétences liées</label>
-                    <div class="checkbox-group">
-                        {% for skill in all_skills %}
-                        <label>
-                            <!-- On ajoute une classe 'edit-skill-checkbox' et l'ID de la compétence -->
-                            <input type="checkbox" 
-                                class="edit-skill-checkbox" 
-                                name="competences" 
-                                value="{{ skill.id }}"
-                                id="chk-skill-{{ skill.id }}"> 
-                            {{ skill.nom }}
-                        </label>
-                        {% endfor %}
-                    </div>
-                </div>
-                
+
                 <div class="btn-group">
-                    <button type="submit" class="btn-submit">Enregistrer les modifications</button>
-                    <button type="button" class="btn-danger" onclick="deletePosteFromEditForm()">Supprimer</button>
+                    <button type="button" class="btn-secondary" onclick="goBackToStep1()">
+                        Modifier
+                    </button>
+                    <button type="submit" class="btn-confirm">
+                        Confirmer les données
+                    </button>
                 </div>
-            </form>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODALE 4 : ÉDITER UN POSTE -->
+<!-- ============================================================ -->
+<div id="modalEditPoste" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('modalEditPoste')">&times;</span>
+        <h2>Modifier le Poste</h2>
+        <form action="{{ url_for('main.update_poste') }}" method="POST">
+            <input type="hidden" id="edit_poste_id" name="poste_id">
+            <div class="form-group">
+                <label>Nom du poste</label>
+                <input type="text" id="edit_poste_nom" name="nom_poste" required>
+            </div>
+            <div class="form-group">
+                <label>Modifier les compétences liées</label>
+                <div class="checkbox-group">
+                    {% for skill in all_skills %}
+                    <label>
+                        <input type="checkbox"
+                               class="edit-skill-checkbox"
+                               name="competences"
+                               value="{{ skill.id }}"
+                               id="chk-skill-{{ skill.id }}">
+                        {{ skill.nom }}
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="btn-group">
+                <button type="submit" class="btn-submit">Enregistrer</button>
+                <button type="button" class="btn-danger"
+                        onclick="deletePosteFromEditForm()">Supprimer</button>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- ============================================================ -->
+<!-- MODALE 5 : ÉDITER UNE COMPÉTENCE -->
+<!-- ============================================================ -->
+<div id="modalEditCompetence" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('modalEditCompetence')">&times;</span>
+        <h2>Modifier la compétence</h2>
+
+        <div class="form-group">
+            <label for="edit_competence_nom">Nom de la compétence</label>
+            <input type="text" id="edit_competence_nom" placeholder="Ex: Excel">
+        </div>
+
+        <div id="edit_competence_error"
+             style="display:none; color:#e74c3c; font-size:0.9rem; margin-bottom:12px;">
+        </div>
+
+        <div class="btn-group">
+            <button type="button" class="btn-secondary"
+                    onclick="deleteCompetenceFromModal()"
+                    style="background:#fdecea; color:#e74c3c; border:1px solid #f5c6cb;">
+                Supprimer
+            </button>
+            <button type="button" class="btn-confirm"
+                    onclick="saveCompetenceFromModal()">
+                Enregistrer
+            </button>
         </div>
     </div>
+</div>
 
+{% endblock %}
 
-    <script>
-        /* --- 1. GESTION GÉNÉRIQUE DES MODALES --- */
-        function openModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) modal.style.display = "flex";
+{% block scripts %}
+<script>
+    /* ============================================================
+       1. MODALES
+       ============================================================ */
+    function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) modal.style.display = "flex";
+    }
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) modal.style.display = "none";
+    }
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = "none";
         }
-        function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) modal.style.display = "none";
-        }
+    };
 
-        // Fermer si on clique sur le fond gris
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.style.display = "none";
-            }
-        }
+    /* ============================================================
+       2. POSTES — sélection et filtrage des compétences
+       ============================================================ */
+    function selectJob(element, jobId) {
+        document.querySelectorAll('.list-item').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+        fetch(`/api/poste/${jobId}`)
+            .then(r => r.json())
+            .then(data => filterSkillsList(data.competences))
+            .catch(err => console.error("Erreur chargement poste :", err));
+    }
 
-        /* --- 2. GESTION DES POSTES ET FILTRAGE --- */
-        function selectJob(element, jobId) {
-            // 1. Gestion visuelle de la sélection (active)
-            document.querySelectorAll('.list-item').forEach(el => el.classList.remove('active'));
-            element.classList.add('active');
-
-            // 2. Appel API pour récupérer les détails du poste (notamment ses compétences)
-            fetch(`/api/poste/${jobId}`)
-                .then(response => response.json())
-                .then(data => {
-                    filterSkillsList(data.competences);
-                })
-                .catch(err => console.error("Erreur chargement poste:", err));
-        }
-
-        function prepareEditPoste(jobId) {
-            // On n'attend pas le fetch, car on connait déjà l'ID.
-            document.getElementById('edit_poste_id').value = jobId;
-
-            fetch(`/api/poste/${jobId}`)
-                .then(res => res.json())
-                .then(data => {
-                    console.log("Données reçues :", data);
-
-                    // Remplissage du Nom
-                    if (data.nom) {
-                        document.getElementById('edit_poste_nom').value = data.nom;
-                    }
-
-                    // Reset des checkboxes
-                    document.querySelectorAll('.edit-skill-checkbox').forEach(cb => cb.checked = false);
-
-                    // Cocher les compétences liées
-                    if (data.competences) {
-                        data.competences.forEach(skill => {
-                            const cb = document.getElementById('chk-skill-' + skill.id);
-                            if(cb) cb.checked = true;
-                        });
-                    }
-
-                    openModal('modalEditPoste');
-                })
-                .catch(err => console.error("Erreur API :", err));
-        }
-
-        function deletePosteFromEditForm() {
-            const posteIdInput = document.getElementById('edit_poste_id');
-            if (!posteIdInput) {
-                console.error("Champ edit_poste_id introuvable dans la modale.");
-                return;
-            }
-            const jobId = posteIdInput.value;
-            if (!jobId) {
-                console.error("Aucun ID poste à supprimer.");
-                return;
-            }
-
-            if (!confirm("Voulez-vous vraiment supprimer ce poste ? Cette action est irréversible.")) {
-                return;
-            }
-
-            fetch(`/api/poste/${jobId}`, {
-                method: 'DELETE',
-                headers: {
-                'Content-Type': 'application/json'
+    function prepareEditPoste(jobId) {
+        document.getElementById('edit_poste_id').value = jobId;
+        fetch(`/api/poste/${jobId}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.nom) document.getElementById('edit_poste_nom').value = data.nom;
+                document.querySelectorAll('.edit-skill-checkbox').forEach(cb => cb.checked = false);
+                if (data.competences) {
+                    data.competences.forEach(skill => {
+                        const cb = document.getElementById('chk-skill-' + skill.id);
+                        if (cb) cb.checked = true;
+                    });
                 }
+                openModal('modalEditPoste');
             })
-            .then(() => {
-                const jobId = document.getElementById('edit_poste_id')?.value;
-                if (jobId) {
-                    const item = document.getElementById('job-' + jobId);
-                    if (item) item.remove();
-                }
+            .catch(err => console.error("Erreur API :", err));
+    }
 
-                closeModal('modalEditPoste');
-                alert('Poste supprimé avec succès.');
-            })
+    function deletePosteFromEditForm() {
+        const jobId = document.getElementById('edit_poste_id')?.value;
+        if (!jobId) return;
+        if (!confirm("Voulez-vous vraiment supprimer ce poste ? Cette action est irréversible.")) return;
 
-            .catch(err => {
-                console.error('Erreur suppression poste:', err);
-                alert('Impossible de supprimer ce poste pour le moment.');
+        fetch(`/api/poste/${jobId}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(() => {
+            const item = document.getElementById('job-' + jobId);
+            if (item) item.remove();
+            closeModal('modalEditPoste');
+            alert('Poste supprimé avec succès.');
+        })
+        .catch(err => {
+            console.error('Erreur suppression poste :', err);
+            alert('Impossible de supprimer ce poste pour le moment.');
+        });
+    }
+
+    function filterSkillsList(linkedSkills) {
+        const linkedIds = linkedSkills.map(s => s.id.toString());
+        let visibleCount = 0;
+        document.querySelectorAll('.skill-item').forEach(item => {
+            const isLinked = linkedIds.includes(item.getAttribute('data-id'));
+            item.style.display = isLinked ? 'flex' : 'none';
+            if (isLinked) visibleCount++;
+        });
+        document.getElementById('no-skills-msg').style.display =
+            visibleCount === 0 ? 'block' : 'none';
+    }
+
+    /* ============================================================
+       3. CRÉATION D'ENTRETIEN
+       ============================================================ */
+    const createBtn = document.querySelector('.btn-main-create');
+    if (createBtn) {
+        createBtn.onclick = function() {
+            const form = document.getElementById('interviewForm');
+            if (form) form.reset();
+            goBackToStep1();
+            openModal('modalInterview');
+        };
+    }
+
+    function showConfirmation() {
+        const nom      = document.getElementById('cand_nom').value;
+        const prenom   = document.getElementById('cand_prenom').value;
+        const dateBrute = document.getElementById('entr_date').value;
+        const recruteur = document.getElementById('entr_recruteur').value || "Aucun";
+        const posteSelect = document.getElementById('entr_poste');
+        const posteTxt = posteSelect.options[posteSelect.selectedIndex].text;
+
+        let dateFormatee = dateBrute;
+        if (dateBrute) {
+            dateFormatee = new Date(dateBrute).toLocaleDateString('fr-FR', {
+                day: 'numeric', month: 'long', year: 'numeric'
             });
         }
 
+        document.getElementById('recap_nom_complet').textContent = `${prenom} ${nom}`;
+        document.getElementById('recap_date').textContent        = dateFormatee;
+        document.getElementById('recap_recruteur').textContent   = recruteur;
+        document.getElementById('recap_poste').textContent       = posteTxt;
 
-        function filterSkillsList(linkedSkills) {
-            const linkedIds = linkedSkills.map(s => s.id.toString());
-            
-            const allSkillItems = document.querySelectorAll('.skill-item');
-            let visibleCount = 0;
+        document.getElementById('interview-step-1').style.display = 'none';
+        document.getElementById('interview-step-2').style.display = 'block';
+    }
 
-            allSkillItems.forEach(item => {
-                const skillId = item.getAttribute('data-id');
-                
-                if (linkedIds.includes(skillId)) {
-                    item.style.display = 'flex';
-                    visibleCount++;
-                } else {
-                    item.style.display = 'none';
-                }
-            });
+    function goBackToStep1() {
+        document.getElementById('interview-step-1').style.display = 'block';
+        document.getElementById('interview-step-2').style.display = 'none';
+    }
 
-            // Afficher un message si aucune compétence n'est visible
-            const msg = document.getElementById('no-skills-msg');
-            if(visibleCount === 0) msg.style.display = 'block';
-            else msg.style.display = 'none';
+    /* ============================================================
+       5. ÉDITION DE COMPÉTENCE
+       ============================================================ */
+    let _currentCompetenceId = null;
+
+    function openEditCompetence(skillId, skillNom) {
+        _currentCompetenceId = skillId;
+        document.getElementById('edit_competence_nom').value = skillNom;
+        document.getElementById('edit_competence_error').style.display = 'none';
+        openModal('modalEditCompetence');
+    }
+
+    function saveCompetenceFromModal() {
+        const nom = document.getElementById('edit_competence_nom').value.trim();
+        const errorDiv = document.getElementById('edit_competence_error');
+
+        if (!nom) {
+            errorDiv.textContent = 'Le nom ne peut pas être vide.';
+            errorDiv.style.display = 'block';
+            return;
         }
 
-        /* --- 3. CRÉATION D'ENTRETIEN (Le bouton Violet) --- */
-        const createBtn = document.querySelector('.btn-main-create');
-        if (createBtn) {
-            createBtn.onclick = function() {
-                const form = document.getElementById('interviewForm');
-                if (form) form.reset(); // Reset si le formulaire existe
-                
-                goBackToStep1(); 
-                openModal('modalInterview');
-            };
-        }
-
-        /* --- 4. LOGIQUE DU FORMULAIRE ENTRETIEN --- */
-        function showConfirmation() {
-            const nom = document.getElementById('cand_nom').value;
-            const prenom = document.getElementById('cand_prenom').value;
-            const dateBrute = document.getElementById('entr_date').value;
-            const recruteur = document.getElementById('entr_recruteur').value || "Aucun";
-            const posteSelect = document.getElementById('entr_poste');
-            const posteTxt = posteSelect.options[posteSelect.selectedIndex].text;
-
-            let dateFormatee = dateBrute;
-            if (dateBrute) {
-                const dateObj = new Date(dateBrute);
-                dateFormatee = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric'});
-            }
-            
-            // Injection
-            document.getElementById('recap_nom_complet').textContent = `${prenom} ${nom}`;
-            document.getElementById('recap_date').textContent = dateFormatee;
-            document.getElementById('recap_recruteur').textContent = recruteur;
-            document.getElementById('recap_poste').textContent = posteTxt;
-        
-            // Bascule
-            document.getElementById('interview-step-1').style.display = 'none';
-            document.getElementById('interview-step-2').style.display = 'block';
-        }
-
-        function goBackToStep1() {
-            const step1 = document.getElementById('interview-step-1');
-            const step2 = document.getElementById('interview-step-2');
-            if(step1 && step2) {
-                step1.style.display = 'block';
-                step2.style.display = 'none';
-            }
-        }
-
-        function confirmInterview() {
-            document.getElementById('interviewForm').submit();
-        }
-    
-        function copyLinkFromData(buttonElement) {
-            // On récupère l'URL stockée dans l'attribut data-link du bouton cliqué
-            const link = buttonElement.getAttribute('data-link');
-            
-            if (link) {
-                navigator.clipboard.writeText(link).then(function() {
-                    alert('Lien copié dans le presse-papier !');
-                }, function(err) {
-                    console.error('Erreur lors de la copie : ', err);
-                    // Fallback si le navigateur bloque
-                    alert("Impossible de copier automatiquement. Voici le lien :\n" + link);
-                });
+        fetch(`/api/competence/${_currentCompetenceId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nom })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                // Mise à jour du DOM sans rechargement
+                const item = document.querySelector(`.skill-item[data-id="${_currentCompetenceId}"]`);
+                if (item) item.querySelector('span').textContent = data.competence.nom;
+                // Met aussi à jour l'attribut onclick pour refléter le nouveau nom
+                if (item) item.setAttribute('onclick',
+                    `openEditCompetence('${data.competence.id}', '${data.competence.nom}')`);
+                closeModal('modalEditCompetence');
             } else {
-                console.error("Aucun lien trouvé dans l'attribut data-link");
+                errorDiv.textContent = data.message;
+                errorDiv.style.display = 'block';
             }
-        }
-    </script>
+        })
+        .catch(() => {
+            errorDiv.textContent = 'Erreur réseau, réessayez.';
+            errorDiv.style.display = 'block';
+        });
+    }
 
-</body>
-</html>
+    function deleteCompetenceFromModal() {
+        const errorDiv = document.getElementById('edit_competence_error');
+
+        if (!confirm('Voulez-vous vraiment supprimer cette compétence ?')) return;
+
+        fetch(`/api/competence/${_currentCompetenceId}`, { method: 'DELETE' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const item = document.querySelector(`.skill-item[data-id="${_currentCompetenceId}"]`);
+                if (item) item.remove();
+                closeModal('modalEditCompetence');
+            } else {
+                errorDiv.textContent = data.message;
+                errorDiv.style.display = 'block';
+            }
+        })
+        .catch(() => {
+            errorDiv.textContent = 'Erreur réseau, réessayez.';
+            errorDiv.style.display = 'block';
+        });
+    }
+    function copyLinkFromData(buttonElement) {
+        const link = buttonElement.getAttribute('data-link');
+        if (!link) return;
+        navigator.clipboard.writeText(link)
+            .then(() => alert('Lien copié dans le presse-papier !'))
+            .catch(() => alert("Voici le lien à copier manuellement :\n" + link));
+    }
+</script>
+{% endblock %}

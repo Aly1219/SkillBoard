@@ -1,14 +1,16 @@
 {% extends "error_base.html" %}
 
-{% block title %}Requête invalide - SkillBoard{% endblock %}
+{% block title %}Requête invalide{% endblock %}
 {% block icon %}❌{% endblock %}
+{% block code %}400{% endblock %}
+{% block title_text %}Requête invalide{% endblock %}
 {% block message %}La requête envoyée n'est pas valide. Veuillez vérifier les données et réessayer.{% endblock %}
+
 {% block buttons %}
 <a href="{{ url_for('main.home') }}" class="btn btn-primary">Retour au tableau de bord</a>
 <a href="javascript:history.back()" class="btn btn-secondary">Retour</a>
 {% endblock %}
+
 {% block details %}
-<div class="error-details">
-    <p>Code d'erreur: 400 - BAD REQUEST</p>
-</div>
+<div class="error-details">Code 400 — Bad Request</div>
 {% endblock %}

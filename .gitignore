@@ -1,11 +1,30 @@
+# Environnement virtuel
 venv/
+.venv/
+
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.egg-info/
+
+# Variables d'environnement
 .env
+
+# Système
 .DS_Store
-docs/
+
+# Base de données locale
 instance/
+*.db
+
+# Assets non versionnés
 static/img/
-Dockerfile
-.dokerignore
+
+# Tests et couverture
+.pytest_cache/
 .coverage
+htmlcov/
+
+# Documentation générée
+docs/

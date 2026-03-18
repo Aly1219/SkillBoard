@@ -1,84 +1,72 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Création Entretien - {{ entretien.candidat_nom }}</title>
-    <!-- On réutilise le même CSS + un fichier spécifique si besoin -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body class="page-evaluation">
+{% extends "base.html" %}
 
-    <div class="container">
-        <!-- En-tête -->
-        <header>
-            <h1>Bonjour {{ user }}</h1>
-        </header>
+{% block title %}Création Entretien - {{ entretien.candidat_nom }}{% endblock %}
+{% block body_class %}page-evaluation{% endblock %}
 
-        <!-- Bloc d'informations Candidat (Style texte brut comme l'image) -->
-        <div class="info-block">
-            <p><strong>Candidat :</strong> {{ entretien.candidat_nom }} {{ entretien.candidat_prenom }}</p>
-            <p><strong>Poste :</strong> {{ entretien.poste.nom }}</p>
-            <p><strong>Recruteurs :</strong> {{ user }} & {{ entretien.recruteur_secondaire }}</p>
-            <p><strong>Date :</strong> {{ date_formatted }}</p>
-        </div>
+{% block content %}
+<div class="container">
 
-        <!-- Titre Section -->
-        <h2 class="section-title">Compétences à évaluer</h2>
+    <header>
+        <h1>Bonjour {{ user }}</h1>
+    </header>
 
-        <div class="instructions">
-            <p>Avant de pouvoir attribuer un vote (1-10) au candidat pour chaque compétence définie, vous devez renseigner :</p>
-            <p>
-                <ul>
-                    <li>Le <strong>palier </strong>- minimum attendu</li>
-                    <li>La <strong>pondération </strong>- l'importance de cette compétence
-                    <br>(<span style="color: green;">normal</span> = 1, <span style="color: darkorange;">élevée</span> = 2, <span style="color: red;">crutiale</span> = 3)
-                    </li>
-                </ul>
-            </p>
-        </div>
-        
-
-        <!-- Tableau d'évaluation -->
-        <form action="{{ url_for('main.start_vote', entretien_id=entretien.id) }}" method="POST">
-            <input type="hidden" id="entretien_id" value="{{ entretien.id }}">
-            <div class="table-wrapper">
-                <table class="skills-table">
-                    <thead>
-                        <tr>
-                            <th class="text-left">Compétence</th>
-                            <th class="text-center">Palier</th>
-                            <th class="text-center">Pondération</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for skill in entretien.poste.competences %}
-                        <tr>
-                            <td class="skill-name">{{ skill.nom }}</td>
-                            <!-- Champs input pré-remplis ou vides pour définir le palier -->
-                            <td class="text-center">
-                                <input type="number" name="palier_{{ skill.id }}" class="input-number" value="" min="1" max="10">
-                            </td>
-                            <td class="text-center">
-                                <input type="number" name="ponderation_{{ skill.id }}" class="input-number" value="1" min="1" max="3">
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Bouton Confirmer en bas à droite -->
-            <div class="actions-footer">
-                <a href="{{ url_for('main.home') }}" class="btn-go-back" title="Annuler">
-                    <i class="fa fa-arrow-left"></i>
-                </a>
-                <button type="submit" class="btn-white-confirm">Confirmer</button>
-            </div>
-        </form>
+    <div class="info-block">
+        <p><strong>Candidat :</strong> {{ entretien.candidat_nom }} {{ entretien.candidat_prenom }}</p>
+        <p><strong>Poste :</strong> {{ entretien.poste.nom }}</p>
+        <p><strong>Recruteurs :</strong> {{ user }} &amp; {{ entretien.recruteur_secondaire }}</p>
+        <p><strong>Date :</strong> {{ date_formatted }}</p>
     </div>
 
-</body>
-</html>
+    <h2 class="section-title">Compétences à évaluer</h2>
+
+    <div class="instructions">
+        <p>Avant de pouvoir attribuer un vote (1-10) au candidat pour chaque compétence,
+           vous devez renseigner :</p>
+        <ul>
+            <li>Le <strong>palier</strong> — minimum attendu</li>
+            <li>La <strong>pondération</strong> — l'importance de cette compétence<br>
+                (<span class="text-normal">normal</span> = 1,
+                 <span class="text-warning">élevée</span> = 2,
+                 <span class="text-danger">cruciale</span> = 3)
+            </li>
+        </ul>
+    </div>
+
+    <form action="{{ url_for('main.start_vote', entretien_id=entretien.id) }}" method="POST">
+        <div class="table-wrapper">
+            <table class="skills-table">
+                <thead>
+                    <tr>
+                        <th class="text-left">Compétence</th>
+                        <th class="text-center">Palier</th>
+                        <th class="text-center">Pondération</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for skill in entretien.poste.competences %}
+                    <tr>
+                        <td class="skill-name">{{ skill.nom }}</td>
+                        <td class="text-center">
+                            <input type="number" name="palier_{{ skill.id }}"
+                                   class="input-number" min="1" max="10">
+                        </td>
+                        <td class="text-center">
+                            <input type="number" name="ponderation_{{ skill.id }}"
+                                   class="input-number" value="1" min="1" max="3">
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="actions-footer">
+            <a href="{{ url_for('main.home') }}" class="btn-go-back" title="Annuler">
+                <i class="fa fa-arrow-left"></i>
+            </a>
+            <button type="submit" class="btn-white-confirm">Confirmer</button>
+        </div>
+    </form>
+
+</div>
+{% endblock %}

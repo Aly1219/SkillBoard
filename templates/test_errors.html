@@ -1,129 +1,18 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tests - Pages d'Erreur</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .test-container {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            padding: 40px;
-            max-width: 600px;
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        
-        .test-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        
-        .test-card {
-            border: 2px solid #667eea;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .test-card:hover {
-            background: #667eea;
-            color: white;
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-        
-        .test-card a {
-            text-decoration: none;
-            color: inherit;
-            display: block;
-            font-weight: 600;
-        }
-        
-        .error-code {
-            font-size: 36px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-        
-        .error-desc {
-            font-size: 14px;
-            opacity: 0.8;
-        }
-        
-        .warning {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            color: #856404;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-size: 14px;
-        }
-        
-        @media (max-width: 600px) {
-            .test-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="test-container">
-        <div class="warning">
-            ⚠️ Pages de test - À SUPPRIMER en production !
-        </div>
-        
-        <h1>🧪 Test des pages d'erreur</h1>
-        
-        <div class="test-grid">
-            <div class="test-card">
-                <a href="/test/404">
-                    <div class="error-code">404</div>
-                    <div class="error-desc">Page non trouvée</div>
-                </a>
-            </div>
-            
-            <div class="test-card">
-                <a href="/test/500">
-                    <div class="error-code">500</div>
-                    <div class="error-desc">Erreur serveur</div>
-                </a>
-            </div>
-            
-            <div class="test-card">
-                <a href="/test/403">
-                    <div class="error-code">403</div>
-                    <div class="error-desc">Accès refusé</div>
-                </a>
-            </div>
-            
-            <div class="test-card">
-                <a href="/test/400">
-                    <div class="error-code">400</div>
-                    <div class="error-desc">Requête invalide</div>
-                </a>
-            </div>
-        </div>
-    </div>
-</body>
-</html>
+{% extends "error_base.html" %}
+
+{% block title %}Test des pages d'erreur{% endblock %}
+{% block icon %}🧪{% endblock %}
+{% block code %}Tests{% endblock %}
+{% block title_text %}Pages d'erreur{% endblock %}
+{% block message %}Cliquez sur un code pour tester la page d'erreur correspondante.{% endblock %}
+
+{% block buttons %}
+<a href="{{ url_for('main.test_404') }}" class="btn btn-secondary">404</a>
+<a href="{{ url_for('main.test_500') }}" class="btn btn-secondary">500</a>
+<a href="{{ url_for('main.test_403') }}" class="btn btn-secondary">403</a>
+<a href="{{ url_for('main.test_400') }}" class="btn btn-secondary">400</a>
+{% endblock %}
+
+{% block details %}
+<div class="error-details">⚠️ Page de test — à supprimer en production</div>
+{% endblock %}

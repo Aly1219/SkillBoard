@@ -1,14 +1,32 @@
+# Git
 .git
 .gitignore
+
+# Variables d'environnement
 .env
-.venv
+.env.*
+
+# Environnement virtuel
 venv/
+.venv/
+
+# Python
 __pycache__/
 *.pyc
+
+# Tests (inutiles en production)
+tests/
 .pytest_cache/
 .coverage
+htmlcov/
+
+# Base de données locale (recréée au démarrage)
 instance/
 *.db
+
+# Système
 .DS_Store
+
+# Documentation
 README.md
-/docs
+docs/

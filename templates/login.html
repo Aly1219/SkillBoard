@@ -1,47 +1,51 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion - SkillBoard</title>
-    <!-- Font Awesome & Google Fonts -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body class="auth-body">
+{% extends "base.html" %}
 
-    <div class="auth-card">
-        
-        <!-- Logo / Titre -->
-        <div class="logo-area">
-            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="SkillBoard" class="app-logo">
-            <h1>SkillBoard</h1>
-            <p>Connectez-vous pour accéder au dashboard</p>
-        </div>
+{% block title %}Connexion - SkillBoard{% endblock %}
+{% block body_class %}auth-body{% endblock %}
 
-        <!-- Formulaire -->
-        <form method="POST" action="{{ url_for('main.login') }}">
-            
-            <div class="input-group">
-                <label for="username">Nom d'utilisateur</label>
-                <div class="input-wrapper">
-                    <input type="text" id="username" name="username" placeholder="Entrez votre identifiant" required autofocus>
-                    <i class="fas fa-user"></i>
-                </div>
-            </div>
+{# Pas de flash générique sur la page auth — on affiche le message dans la carte #}
+{% block flash_messages %}{% endblock %}
 
-            <div class="input-group">
-                <label for="password">Mot de passe</label>
-                <div class="input-wrapper">
-                    <input type="password" id="password" name="password" placeholder="••••••••" required>
-                    <i class="fas fa-lock"></i>
-                </div>
-            </div>
+{% block content %}
+<div class="auth-card">
 
-            <button type="submit" class="btn-login">Se connecter</button>
-        </form>
+    <div class="logo-area">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="SkillBoard" class="app-logo">
+        <h1>SkillBoard</h1>
+        <p>Connectez-vous pour accéder au dashboard</p>
     </div>
 
-</body>
-</html>
+    {# Messages d'erreur (ex: mot de passe incorrect) #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('main.login') }}">
+
+        <div class="input-group">
+            <label for="username">Nom d'utilisateur</label>
+            <div class="input-wrapper">
+                <input type="text" id="username" name="username"
+                       placeholder="Entrez votre identifiant" required autofocus>
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="password">Mot de passe</label>
+            <div class="input-wrapper">
+                <input type="password" id="password" name="password"
+                       placeholder="••••••••" required>
+                <i class="fas fa-lock"></i>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-login">Se connecter</button>
+
+    </form>
+</div>
+{% endblock %}

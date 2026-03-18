@@ -1,70 +1,66 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Évaluation - {{ entretien.candidat_nom }}</title>
-    <!-- On réutilise le même CSS + un fichier spécifique si besoin -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-</head>
-<body class="page-evaluation">
+{% extends "base.html" %}
 
-    <div class="container">
-        <!-- En-tête -->
-        <header>
-            <h1>Bonjour {{ entretien.recruteur_secondaire }}</h1>
-        </header>
+{% block title %}Évaluation - {{ entretien.candidat_nom }}{% endblock %}
+{% block body_class %}page-evaluation{% endblock %}
 
-        <!-- Bloc d'informations Candidat (Style texte brut comme l'image) -->
-        <div class="info-block">
-            <p><strong>Candidat :</strong> {{ entretien.candidat_prenom }} {{ entretien.candidat_nom }}</p>
-            <p><strong>Poste :</strong> {{ entretien.poste.nom }}</p>
-            <p><strong>Recruteurs :</strong> {{ user }} & {{ entretien.recruteur_secondaire }}</p>
-            <p><strong>Date :</strong> {{ date_formatted }}</p>
-        </div>
+{# Pas de flash pour le guest — page publique #}
+{% block flash_messages %}{% endblock %}
 
-        <!-- Titre Section -->
-        <h2 class="section-title">Compétences à évaluer</h2>
+{% block content %}
+<div class="container">
 
+    <header>
+        <h1>Bonjour {{ entretien.recruteur_secondaire }}</h1>
+    </header>
 
-        <p>Maintenant que l’entretien est terminé, vous pouvez évaluer chaque compétence en fonction du niveau de maîtrise du/de la candidat·e</p>
-        <div class="rating-bar">
-            <div class="rating-numbers">
-                <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                <span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
-            </div>
-        </div>
-        
-
-        <!-- Tableau d'évaluation -->
-        <form action="{{ url_for('main.save_vote_guest', token=token) }}" method="POST">
-            <div class="table-wrapper">
-                <table class="skills-table">
-                    <thead>
-                        <tr>
-                            <th class="text-left">Compétence</th>
-                            <th class="text-center">Vote</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for eval in entretien.evaluations %}
-                        <tr>
-                            <td class="skill-name">{{ eval.competence.nom }}</td>
-                            <td class="text-center">
-                                <input type="number" name="vote_{{ eval.competence_id }}" class="input-number" value="{{ eval.note_guest or '' }}" min="1" max="10">
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="actions-footer">
-                <button type="submit" class="btn-white-confirm">Confirmer</button>
-            </div>
-        </form>
+    <div class="info-block">
+        <p><strong>Candidat :</strong> {{ entretien.candidat_prenom }} {{ entretien.candidat_nom }}</p>
+        <p><strong>Poste :</strong> {{ entretien.poste.nom }}</p>
+        <p><strong>Date :</strong> {{ date_formatted }}</p>
     </div>
 
-</body>
-</html>
+    <h2 class="section-title">Compétences à évaluer</h2>
+
+    <p>Maintenant que l'entretien est terminé, évaluez chaque compétence
+       en fonction du niveau de maîtrise du/de la candidat·e.</p>
+
+    <div class="rating-bar">
+        <div class="rating-numbers">
+            <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+            <span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+        </div>
+    </div>
+
+    <form action="{{ url_for('main.save_vote_guest', token=token) }}" method="POST">
+        <div class="table-wrapper">
+            <table class="skills-table">
+                <thead>
+                    <tr>
+                        <th class="text-left">Compétence</th>
+                        <th class="text-center">Vote</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for eval in entretien.evaluations %}
+                    <tr>
+                        <td class="skill-name">{{ eval.competence.nom }}</td>
+                        <td class="text-center">
+                            {# Correction : note_recruteur2 et non note_guest #}
+                            <input type="number" name="vote_{{ eval.competence_id }}"
+                                   class="input-number"
+                                   value="{{ eval.note_recruteur2 or '' }}"
+                                   min="1" max="10">
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="actions-footer">
+            <button type="submit" class="btn-white-confirm">Confirmer mon évaluation</button>
+        </div>
+    </form>
+
+</div>
+{% endblock %}

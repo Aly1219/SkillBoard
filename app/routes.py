@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, jsonify, redirect, url_fo
 from flask_login import login_user, logout_user, login_required, current_user
 from app.extensions import db
 from app.models import User, Poste, Competence, Entretien, Evaluation
+from datetime import datetime
 from sqlalchemy import delete
 import uuid
 import app.calculs as calculs
@@ -25,7 +26,7 @@ from app.utils import format_date_fr
 # TABLE DES MATIÈRES
 # 1.  AUTHENTIFICATION     login / register / logout
 # 2.  POSTES               get / add / update / delete
-# 3.  COMPÉTENCES          add
+# 3.  COMPÉTENCES          add / update / delete
 # 4.  ENTRETIENS           create / delete
 # 5.  VOTE RH              page / sauvegarde
 # 6.  VOTE GUEST           page / sauvegarde
@@ -203,6 +204,62 @@ def add_competence():
     return redirect(url_for('main.home'))
 
 
+@bp.route('/api/competence/<int:competence_id>', methods=['PUT'])
+@login_required
+def update_competence(competence_id):
+    """Renomme une compétence — vérifie que le nouveau nom n'existe pas déjà"""
+    competence = get_competence_by_id(competence_id)
+    if not competence:
+        return jsonify({'success': False, 'message': 'Compétence non trouvée'}), 404
+
+    data = request.get_json()
+    nouveau_nom = (data.get('nom') or '').strip()
+
+    if not nouveau_nom:
+        return jsonify({'success': False, 'message': 'Le nom est requis'}), 400
+
+    # Vérification doublon (en ignorant la compétence elle-même)
+    existante = get_competence_by_name(nouveau_nom)
+    if existante and existante.id != competence_id:
+        return jsonify({'success': False, 'message': 'Ce nom existe déjà'}), 409
+
+    competence.nom = nouveau_nom
+    db.session.commit()
+    return jsonify({'success': True, 'competence': {'id': competence.id, 'nom': competence.nom}}), 200
+
+
+@bp.route('/api/competence/<int:competence_id>', methods=['DELETE'])
+@login_required
+def delete_competence(competence_id):
+    """
+    Supprime une compétence uniquement si elle n'est liée à aucun poste
+    ni à aucune évaluation en cours.
+    """
+    competence = get_competence_by_id(competence_id)
+    if not competence:
+        return jsonify({'success': False, 'message': 'Compétence non trouvée'}), 404
+
+    # Vérification : liée à au moins un poste ?
+    if competence.postes:
+        noms_postes = ', '.join(p.nom for p in competence.postes)
+        return jsonify({
+            'success': False,
+            'message': f'Impossible de supprimer : cette compétence est liée au(x) poste(s) "{noms_postes}".'
+        }), 409
+
+    # Vérification : utilisée dans une évaluation ?
+    evaluations = Evaluation.query.filter_by(competence_id=competence_id).first()
+    if evaluations:
+        return jsonify({
+            'success': False,
+            'message': 'Impossible de supprimer : cette compétence est utilisée dans un ou plusieurs entretiens.'
+        }), 409
+
+    db.session.delete(competence)
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Compétence supprimée'}), 200
+
+
 # ============================================================
 # 4. ENTRETIENS
 # ============================================================
@@ -210,11 +267,20 @@ def add_competence():
 @bp.route('/create_interview', methods=['POST'])
 @login_required
 def create_interview():
+    from datetime import date as date_type
+
     nom = request.form.get('cand_nom')
     prenom = request.form.get('cand_prenom')
-    date = request.form.get('entr_date')
+    date_str = request.form.get('entr_date')
     recruteur2 = request.form.get('entr_recruteur')
     poste_nom = request.form.get('entr_poste')
+
+    # Conversion de la chaîne ISO reçue du formulaire en objet date Python
+    try:
+        date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except (ValueError, TypeError):
+        flash("Format de date invalide", "error")
+        return redirect(url_for('main.home'))
 
     poste = get_poste_by_name(poste_nom)
 

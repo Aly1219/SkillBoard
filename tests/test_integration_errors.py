@@ -1,76 +1,68 @@
+"""
+Tests d'intégration — Pages d'erreur HTTP.
+"""
 import pytest
-from app import create_app
-from app.extensions import db
+
+
+# Fixtures app et client supprimées — définies dans conftest.py
+# Note : PROPAGATE_EXCEPTIONS doit être False pour que les gestionnaires d'erreur s'activent
 
 
 @pytest.fixture
-def app():
-    """Crée une application de test"""
-    app = create_app()
-    
-    # ✅ Configuration pour les tests
-    app.config['TESTING'] = True
-    app.config['PROPAGATE_EXCEPTIONS'] = False  # Laisse les gestionnaires d'erreur fonctionner
-    
-    with app.app_context():
-        db.create_all()
-        yield app
-        db.session.remove()
-        db.drop_all()
-
-
-@pytest.fixture
-def client(app):
-    """Crée un client de test"""
+def error_client(app):
+    """Client configuré pour laisser les gestionnaires d'erreur fonctionner"""
+    app.config['PROPAGATE_EXCEPTIONS'] = False
     return app.test_client()
 
 
 class TestErrorPages:
     """Tests des pages d'erreur"""
-    
-    def test_404_error(self, client):
-        """Test page 404 - Route inexistante"""
-        response = client.get('/route-inexistante')
+
+    def test_404_route_inexistante(self, error_client):
+        """Une route inconnue retourne une page 404"""
+        response = error_client.get('/route-inexistante-xyz')
         assert response.status_code == 404
         assert b'404' in response.data
-    
-    def test_500_error(self, client):
-        """Test page 500 - Exception serveur"""
-        # ✅ Important : le gestionnaire d'erreur doit capturer l'exception
-        response = client.get('/test/500')
+
+    def test_404_via_route_test(self, error_client):
+        """La route /test/404 retourne bien une page 404"""
+        response = error_client.get('/test/404')
+        assert response.status_code == 404
+        assert b'404' in response.data
+
+    def test_500_via_route_test(self, error_client):
+        """La route /test/500 retourne bien une page 500"""
+        response = error_client.get('/test/500')
         assert response.status_code == 500
         assert b'500' in response.data or b'Erreur serveur' in response.data
-    
-    def test_403_error(self, client):
-        """Test page 403 - Accès refusé"""
-        response = client.get('/test/403')
+
+    def test_403_via_route_test(self, error_client):
+        """La route /test/403 retourne bien une page 403"""
+        response = error_client.get('/test/403')
         assert response.status_code == 403
         assert b'403' in response.data
-    
-    def test_400_error(self, client):
-        """Test page 400 - Requête invalide"""
-        response = client.get('/test/400')
+
+    def test_400_via_route_test(self, error_client):
+        """La route /test/400 retourne bien une page 400"""
+        response = error_client.get('/test/400')
         assert response.status_code == 400
         assert b'400' in response.data
-    
-    def test_error_pages_have_home_button(self, client):
-        """Vérifie que les pages d'erreur ont un bouton de retour"""
-        response = client.get('/test/404')
-        assert response.status_code == 404
+
+    def test_pages_erreur_ont_bouton_retour(self, error_client):
+        """Toutes les pages d'erreur contiennent un bouton de retour"""
+        response = error_client.get('/test/404')
         assert b'Retour' in response.data
-    
-    def test_error_pages_responsive(self, client):
-        """Teste que les pages d'erreur s'affichent bien"""
-        # ✅ Test tous les codes sans problème
-        test_routes = [
+
+    def test_pages_erreur_contiennent_du_html(self, error_client):
+        """Les pages d'erreur retournent du HTML substantiel"""
+        routes = [
             ('/test/404', 404),
             ('/test/403', 403),
             ('/test/400', 400),
-            ('/test/500', 500),  # Maintenant ça doit marcher
+            ('/test/500', 500),
         ]
-        
-        for route, expected_code in test_routes:
-            response = client.get(route)
-            assert response.status_code == expected_code, \
-                f"Route {route} retourned {response.status_code}, attendu {expected_code}"
-            assert len(response.data) > 100  # Contient du HTML
+        for route, expected_code in routes:
+            response = error_client.get(route)
+            assert response.status_code == expected_code
+            assert len(response.data) > 100, \
+                f"{route} retourne trop peu de contenu ({len(response.data)} octets)"
