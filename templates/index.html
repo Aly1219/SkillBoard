@@ -58,6 +58,7 @@
                     onclick="openEditCompetence('{{ skill.id }}', '{{ skill.nom }}')"
                     title="Cliquer pour modifier">
                     <span>{{ skill.nom }}</span>
+                    <i class="fas fa-pen" style="font-size:11px; color:#ccc;"></i>
                 </li>
                 {% endfor %}
             </ul>
@@ -104,16 +105,22 @@
                                 {% if ent.statut == 'Termine' %}
                                     <a href="{{ url_for('main.rapport_entretien', entretien_id=ent.id) }}"
                                        class="btn-action btn-pdf" title="Voir le rapport">
-                                        <i class="fas fa-file-pdf"></i>
+                                        <i class="fas fa-file-pdf"></i> Rapport
                                     </a>
 
                                 {% elif ent.statut == 'Attente_Recruteur2' %}
+                                    {% if session.get('pin_entretien_id') == ent.id %}
+                                    <!-- Bouton accès — ouvre la modale avec URL + PIN -->
                                     <button class="btn-action btn-link"
-                                            title="Copier le lien pour le 2e recruteur"
-                                            data-link="{{ url_for('main.vote_guest', token=ent.token_recruteur2, _external=True) }}"
-                                            onclick="copyLinkFromData(this)">
-                                        <i class="fas fa-link"></i> Lien
+                                            onclick="ouvrirModalAcces('{{ session.get('pin_affiche', '') }}', '{{ ent.recruteur_secondaire }}')"
+                                            title="Voir l'accès du second recruteur">
+                                        <i class="fas fa-key"></i> Accès
                                     </button>
+                                    {% else %}
+                                    <span class="badge badge-warning" title="En attente du second recruteur">
+                                        <i class="fas fa-clock"></i> En attente
+                                    </span>
+                                    {% endif %}
 
                                 {% elif ent.statut == 'Attente_RH' %}
                                     <a href="{{ url_for('main.page_vote_rh', entretien_id=ent.id) }}"
@@ -345,6 +352,56 @@
     </div>
 </div>
 
+
+<!-- ============================================================ -->
+<!-- MODALE ACCÈS RECRUTEUR 2 — URL + PIN -->
+<!-- ============================================================ -->
+<div id="modalAccesRecruteur" class="modal">
+    <div class="modal-content" style="max-width: 480px;">
+        <span class="close" onclick="closeModal('modalAccesRecruteur')">&times;</span>
+        <h2 style="margin-bottom: 6px;">Accès recruteur</h2>
+        <p id="modal-recruteur-nom" style="color: #888; font-size: 0.9rem; margin-bottom: 20px;"></p>
+
+        <!-- URL -->
+        <div class="form-group">
+            <label style="font-size: 0.85rem; color: #555;">Lien à envoyer</label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="text" id="modal-url-vote" readonly
+                       style="flex:1; background:#f5f5f5; border:1px solid #ddd;
+                              border-radius:8px; padding:10px 12px; font-size:0.9rem;
+                              color:#333; cursor:pointer;"
+                       onclick="this.select()">
+                <button class="btn-action btn-link" onclick="copierTexte('modal-url-vote', this)"
+                        style="white-space:nowrap; padding: 8px 14px;">
+                    <i class="fas fa-copy"></i> Copier
+                </button>
+            </div>
+        </div>
+
+        <!-- PIN -->
+        <div class="form-group" style="margin-top: 16px;">
+            <label style="font-size: 0.85rem; color: #555;">Code PIN à communiquer</label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <div style="flex:1; background:#f3e5f5; border:1.5px solid #c065e8;
+                            border-radius:8px; padding:12px 16px; text-align:center;">
+                    <span id="modal-pin-value"
+                          style="font-family:monospace; font-size:2rem; font-weight:bold;
+                                 letter-spacing:8px; color:#6a1b9a;"></span>
+                </div>
+                <button class="btn-action btn-link" onclick="copierTexte('modal-pin-value', this)"
+                        style="white-space:nowrap; padding: 8px 14px;">
+                    <i class="fas fa-copy"></i> Copier
+                </button>
+            </div>
+        </div>
+
+        <p style="font-size:0.82rem; color:#aaa; margin-top:16px; text-align:center;">
+            <i class="fas fa-info-circle"></i>
+            Ce code est à usage unique. Il sera invalidé après la soumission du vote.
+        </p>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -541,12 +598,34 @@
             errorDiv.style.display = 'block';
         });
     }
-    function copyLinkFromData(buttonElement) {
-        const link = buttonElement.getAttribute('data-link');
-        if (!link) return;
-        navigator.clipboard.writeText(link)
-            .then(() => alert('Lien copié dans le presse-papier !'))
-            .catch(() => alert("Voici le lien à copier manuellement :\n" + link));
+    /* ============================================================
+       4. MODAL ACCÈS RECRUTEUR 2 — URL + PIN
+       ============================================================ */
+    function ouvrirModalAcces(pin, nomRecruteur) {
+        const urlVote = "{{ url_vote }}";
+        document.getElementById('modal-url-vote').value = urlVote;
+        document.getElementById('modal-pin-value').textContent = pin;
+        document.getElementById('modal-recruteur-nom').textContent =
+            nomRecruteur ? 'Pour : ' + nomRecruteur : '';
+        openModal('modalAccesRecruteur');
+    }
+
+    function copierTexte(elementId, bouton) {
+        const el = document.getElementById(elementId);
+        const texte = (el.value || el.textContent).trim();
+        navigator.clipboard.writeText(texte)
+            .then(() => {
+                const original = bouton.innerHTML;
+                bouton.innerHTML = '<i class="fas fa-check"></i> Copié !';
+                bouton.style.color = '#27ae60';
+                setTimeout(() => {
+                    bouton.innerHTML = original;
+                    bouton.style.color = '';
+                }, 2000);
+            })
+            .catch(() => {
+                alert('Impossible de copier automatiquement.\nTexte : ' + texte);
+            });
     }
 </script>
 {% endblock %}

@@ -1,10 +1,11 @@
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, abort
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, abort, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from app.extensions import db
 from app.models import User, Poste, Competence, Entretien, Evaluation
 from datetime import datetime
 from sqlalchemy import delete
-import uuid
+import random
+import socket
 import app.calculs as calculs
 from app.db_helpers import (
     get_dashboard_data,
@@ -15,12 +16,11 @@ from app.db_helpers import (
     get_entretien_by_id,
     get_user_by_username,
     user_exists,
-    entretien_by_token,
 )
 from app.validators import (
     validate_note_range,
 )
-from app.utils import format_date_fr
+from app.utils import format_date_fr, get_local_ip
 
 # ============================================================
 # TABLE DES MATIÈRES
@@ -29,7 +29,7 @@ from app.utils import format_date_fr
 # 3.  COMPÉTENCES          add / update / delete
 # 4.  ENTRETIENS           create / delete
 # 5.  VOTE RH              page / sauvegarde
-# 6.  VOTE GUEST           page / sauvegarde
+# 6.  VOTE GUEST           PIN / évaluation / sauvegarde
 # 7.  RAPPORT
 # 8.  ROUTES DE TEST       (dev uniquement)
 # ============================================================
@@ -44,14 +44,24 @@ bp = Blueprint('main', __name__)
 @bp.route('/')
 @login_required
 def home():
-    """Affiche le dashboard avec toutes les données"""
     data = get_dashboard_data()
+    
+    # Récupère l'IP locale de la machine pour construire l'URL de vote
+    try:
+        hostname = socket.gethostname()
+        ip_locale = get_local_ip()
+    except Exception:
+        ip_locale = '127.0.0.1'
+    
+    port = current_app.config.get('PORT', 5001)
+    url_vote = f"http://{ip_locale}:{port}/vote"
+    
     return render_template('index.html',
                            user=current_user.username,
                            jobs=data['postes'],
                            all_skills=data['all_competences'],
-                           entretiens=data['entretiens'])
-
+                           entretiens=data['entretiens'],
+                           url_vote=url_vote)
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -411,53 +421,91 @@ def save_vote_rh(entretien_id):
         if val:
             ev.note_rh = int(val)
 
-    token = str(uuid.uuid4())
-    entretien.token_recruteur2 = token
+    # Génération d'un PIN à 6 chiffres stocké hashé (PBKDF2)
+    pin = str(random.randint(100000, 999999))
+    entretien.set_pin(pin)
     entretien.statut = "Attente_Recruteur2"
     db.session.commit()
+
+    # On passe le PIN en clair UNE SEULE FOIS via la session Flask
+    # Il n'est plus lisible ensuite — seul le hash est en base
+    from flask import session
+    session['pin_affiche'] = pin
+    session['pin_entretien_id'] = entretien_id
 
     return redirect(url_for('main.home'))
 
 
 # ============================================================
-# 6. VOTE GUEST (recruteur externe — accès par token)
+# 6. VOTE GUEST — authentification par PIN à usage unique
 # ============================================================
 
-@bp.route('/vote_guest/<token>')
-def vote_guest(token):
-    entretien = entretien_by_token(token)
-    if not entretien:
-        abort(404)
+@bp.route('/vote')
+def vote_pin_page():
+    """Page de saisie du PIN pour le second recruteur"""
+    return render_template('vote_pin.html', error=None)
 
-    if entretien.statut == "Termine":
-        return render_template('vote_cloture.html')
 
-    # Sécurité : on ne récupère le username que si l'utilisateur est authentifié
-    user_name = current_user.username if current_user.is_authenticated else "Recruteur externe"
+@bp.route('/vote', methods=['POST'])
+def vote_pin_submit():
+    """Vérifie le PIN et redirige vers la page de vote si correct"""
+    from sqlalchemy import select as sa_select
+    pin_saisi = request.form.get('pin', '').strip()
 
-    # On s'assure que toutes les compétences ont bien une évaluation liée
-    existing = {e.competence_id for e in entretien.evaluations}
-    for skill in entretien.poste.competences:
-        if skill.id not in existing:
-            db.session.add(Evaluation(entretien_id=entretien.id, competence_id=skill.id))
-    db.session.commit()
+    # On cherche l'entretien en attente dont le PIN correspond
+    entretiens_en_attente = db.session.scalars(
+        sa_select(Entretien).where(Entretien.statut == "Attente_Recruteur2")
+    ).all()
+
+    entretien_trouve = None
+    for ent in entretiens_en_attente:
+        if ent.check_pin(pin_saisi):
+            entretien_trouve = ent
+            break
+
+    if not entretien_trouve:
+        return render_template('vote_pin.html', error="Code PIN incorrect ou expiré.")
+
+    # PIN valide — on stocke l'ID en session et on redirige
+    from flask import session
+    session['guest_entretien_id'] = entretien_trouve.id
+    return redirect(url_for('main.vote_guest'))
+
+
+@bp.route('/vote/evaluation')
+def vote_guest():
+    """Page de vote pour le second recruteur (après authentification PIN)"""
+    from flask import session
+    entretien_id = session.get('guest_entretien_id')
+
+    if not entretien_id:
+        return redirect(url_for('main.vote_pin_page'))
+
+    entretien = db.session.get(Entretien, entretien_id)
+    if not entretien or entretien.statut != "Attente_Recruteur2":
+        session.pop('guest_entretien_id', None)
+        return redirect(url_for('main.vote_pin_page'))
 
     return render_template('voteGuest.html',
                            entretien=entretien,
-                           user=user_name,
-                           date_formatted=format_date_fr(entretien.date_entretien),
-                           token=token)
+                           date_formatted=format_date_fr(entretien.date_entretien))
 
 
-@bp.route('/save_vote_guest/<token>', methods=['POST'])
-def save_vote_guest(token):
-    entretien = entretien_by_token(token)
+@bp.route('/vote/evaluation', methods=['POST'])
+def save_vote_guest():
+    """Enregistre les votes du second recruteur et invalide le PIN"""
+    from flask import session
+    entretien_id = session.get('guest_entretien_id')
+
+    if not entretien_id:
+        return redirect(url_for('main.vote_pin_page'))
+
+    entretien = db.session.get(Entretien, entretien_id)
     if not entretien:
         abort(404)
 
     for evaluation in entretien.evaluations:
         valeur_vote = request.form.get(f'vote_{evaluation.competence_id}')
-
         if valeur_vote:
             is_valid, error_msg = validate_note_range(valeur_vote)
             if not is_valid:
@@ -465,9 +513,10 @@ def save_vote_guest(token):
             evaluation.note_recruteur2 = int(valeur_vote)
 
     entretien.statut = "Termine"
-    entretien.token_recruteur2 = None  # Invalide le lien après usage
+    entretien.clear_pin()       # PIN invalidé — ne peut plus être réutilisé
     db.session.commit()
 
+    session.pop('guest_entretien_id', None)
     return render_template('vote_merci.html')
 
 

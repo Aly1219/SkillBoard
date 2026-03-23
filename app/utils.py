@@ -1,5 +1,6 @@
 import sys
 import os
+import socket
 from datetime import datetime
 
 # ============================================================
@@ -32,27 +33,26 @@ _MOIS_FR = {
 }
 
 def format_date_fr(date_entretien):
-    """
-    Convertit une date en chaîne lisible en français.
-
-    Accepte :
-        - un objet datetime.date  → directement formaté
-        - une chaîne 'YYYY-MM-DD' → parsée puis formatée
-
-    Retourne :
-        str  ex. "31 janvier 2026"
-             ou la valeur originale si le format est invalide
-    """
     if date_entretien is None:
         return ""
 
-    # Cas 1 : objet date natif (après migration vers db.Date)
-    if hasattr(date_entretien, 'day'):
+    # Cas 1 : objet date ou datetime natif Python
+    if hasattr(date_entretien, 'strftime'):
         return f"{date_entretien.day} {_MOIS_FR[date_entretien.month]} {date_entretien.year}"
 
-    # Cas 2 : chaîne ISO (données existantes avant migration)
+    # Cas 2 : chaîne ISO "YYYY-MM-DD" (données avant migration)
     try:
         date_obj = datetime.strptime(str(date_entretien), '%Y-%m-%d')
         return f"{date_obj.day} {_MOIS_FR[date_obj.month]} {date_obj.year}"
     except ValueError:
-        return str(date_entretien)  # Format inconnu — on retourne tel quel
+        return str(date_entretien)
+
+def get_local_ip():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return '127.0.0.1'

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Accès évaluation — SkillBoard{% endblock %}
+{% block body_class %}auth-body{% endblock %}
+
+{# Pas de flash sur cette page publique #}
+{% block flash_messages %}{% endblock %}
+
+{% block content %}
+<div class="auth-card">
+
+    <div class="logo-area">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="SkillBoard" class="app-logo">
+        <h1>SkillBoard</h1>
+        <p>Saisissez le code PIN transmis par le recruteur principal</p>
+    </div>
+
+    {% if error %}
+    <div class="pin-error">
+        <i class="fas fa-exclamation-circle"></i> {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('main.vote_pin_submit') }}">
+
+        <div class="input-group">
+            <label for="pin">Code PIN à 6 chiffres</label>
+            <div class="input-wrapper">
+                <input type="text"
+                       id="pin"
+                       name="pin"
+                       placeholder="000000"
+                       maxlength="6"
+                       pattern="[0-9]{6}"
+                       inputmode="numeric"
+                       autocomplete="off"
+                       required
+                       autofocus
+                       style="letter-spacing: 6px; font-size: 1.4rem; text-align: center;">
+                <i class="fas fa-key"></i>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-login">
+            Accéder à l'évaluation
+        </button>
+
+    </form>
+
+    <div class="hint" style="margin-top: 20px;">
+        <i class="fas fa-info-circle"></i>
+        <span>Ce code est à usage unique et valable pour un seul entretien.</span>
+    </div>
+
+</div>
+
+<style>
+.pin-error {
+    background: #fdecea;
+    border: 1px solid #f5c6cb;
+    color: #c0392b;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+</style>
+{% endblock %}

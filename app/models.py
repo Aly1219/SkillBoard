@@ -27,7 +27,8 @@ poste_competence = db.Table('poste_competence',
 # ============================================================
 class Competence(db.Model):
     id  = db.Column(db.Integer, primary_key=True)
-    nom = db.Column(db.String(100), nullable=False, unique=True)
+    nom = db.Column(db.String(100), nullable=False)
+    __table_args__ = (db.UniqueConstraint('nom', name='uq_competence_nom'),)
 
     def __repr__(self):
         return f"<Competence {self.nom!r}>"
@@ -38,7 +39,8 @@ class Competence(db.Model):
 # ============================================================
 class Poste(db.Model):
     id  = db.Column(db.Integer, primary_key=True)
-    nom = db.Column(db.String(100), nullable=False, unique=True)
+    nom = db.Column(db.String(100), nullable=False)
+    __table_args__ = (db.UniqueConstraint('nom', name='uq_poste_nom'),)
     competences = db.relationship(
         'Competence',
         secondary=poste_competence,
@@ -62,9 +64,24 @@ class Entretien(db.Model):
     recruteur_secondaire = db.Column(db.String(50))
     poste_id            = db.Column(db.Integer, db.ForeignKey('poste.id'))
     poste               = db.relationship('Poste', backref='entretiens')
-    token_recruteur2    = db.Column(db.String(100), unique=True)
+    # PIN à 6 chiffres pour le second recruteur — stocké hashé (PBKDF2)
+    pin_hash            = db.Column(db.String(200), nullable=True)
     statut              = db.Column(db.String(20), default="Cree")
     evaluations         = db.relationship('Evaluation', backref='entretien', lazy=True)
+
+    def set_pin(self, pin):
+        """Hash et stocke le PIN avec PBKDF2 (même mécanisme que les mots de passe)"""
+        self.pin_hash = generate_password_hash(str(pin))
+
+    def check_pin(self, pin):
+        """Vérifie le PIN saisi contre le hash stocké"""
+        if not self.pin_hash:
+            return False
+        return check_password_hash(self.pin_hash, str(pin))
+
+    def clear_pin(self):
+        """Invalide le PIN après usage"""
+        self.pin_hash = None
 
     def __repr__(self):
         return f"<Entretien {self.candidat_nom} {self.candidat_prenom} — {self.date_entretien}>"
