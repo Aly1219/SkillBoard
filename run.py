@@ -18,8 +18,10 @@ try:
     app = create_app()
 
     host  = os.getenv('FLASK_HOST', '0.0.0.0')
-    port  = int(os.getenv('FLASK_PORT', 5001))
-    debug = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
+    port  = int(os.getenv('FLASK_PORT', 5000))
+    # valeur par défaut de FLASK_DEBUG doit être 'False' en production
+    debug = os.getenv('FLASK_DEBUG', 'False').lower() == 'true' 
+
 
     app.logger.info("Application SkillBoard démarrée")
     app.logger.info(f"Web : http://localhost:{port}")
@@ -43,7 +45,7 @@ try:
                 print(f"  {rule.rule:45} → {rule.endpoint}")
         print()
 
-    app.run(debug=debug, host=host, port=port)
+    app.run(debug=False, host=host, port=port)
 
 except Exception as e:
     print(f"\nERREUR AU DÉMARRAGE : {type(e).__name__}: {e}")

@@ -163,32 +163,51 @@ class TestEntretienModel:
             assert reloaded.date_entretien.month == 6
             assert reloaded.date_entretien.day == 15
 
-    def test_entretien_token_unique(self, app):
-        with app.app_context():
-            poste = Poste(nom='Dev')
-            db.session.add(poste)
-            db.session.commit()
-
-            token = 'unique-token-123'
-            db.session.add(Entretien(
-                candidat_nom='Test1', candidat_prenom='A',
-                date_entretien=date(2026, 2, 28),
-                poste_id=poste.id, token_recruteur2=token
-            ))
-            db.session.commit()
-
-            db.session.add(Entretien(
-                candidat_nom='Test2', candidat_prenom='B',
-                date_entretien=date(2026, 2, 28),
-                poste_id=poste.id, token_recruteur2=token
-            ))
-            with pytest.raises(Exception):
-                db.session.commit()
-
     def test_entretien_repr(self, app):
         with app.app_context():
             entretien = Entretien(candidat_nom='Martin', candidat_prenom='Léa')
             assert 'Martin' in repr(entretien)
+
+
+class TestEntretienPinModel:
+    """Tests pour le système PIN à usage unique (accès second recruteur)"""
+
+    def test_set_pin_hash_different_de_pin_clair(self, app):
+        """Le PIN ne doit jamais être stocké en clair"""
+        with app.app_context():
+            entretien = Entretien(candidat_nom='Test', candidat_prenom='A')
+            entretien.set_pin('123456')
+            assert entretien.pin_hash != '123456'
+            assert entretien.pin_hash is not None
+
+    def test_check_pin_correct(self, app):
+        """check_pin retourne True pour le bon PIN"""
+        with app.app_context():
+            entretien = Entretien(candidat_nom='Test', candidat_prenom='A')
+            entretien.set_pin('654321')
+            assert entretien.check_pin('654321') is True
+
+    def test_check_pin_incorrect(self, app):
+        """check_pin retourne False pour un PIN erroné"""
+        with app.app_context():
+            entretien = Entretien(candidat_nom='Test', candidat_prenom='A')
+            entretien.set_pin('654321')
+            assert entretien.check_pin('000000') is False
+
+    def test_clear_pin_invalide_le_pin(self, app):
+        """Après clear_pin, check_pin retourne toujours False — PIN à usage unique"""
+        with app.app_context():
+            entretien = Entretien(candidat_nom='Test', candidat_prenom='A')
+            entretien.set_pin('111222')
+            entretien.clear_pin()
+            assert entretien.pin_hash is None
+            assert entretien.check_pin('111222') is False
+
+    def test_check_pin_sans_pin_defini(self, app):
+        """check_pin retourne False si aucun PIN n'a été défini"""
+        with app.app_context():
+            entretien = Entretien(candidat_nom='Test', candidat_prenom='A')
+            assert entretien.check_pin('123456') is False
 
 
 class TestEvaluationModel:

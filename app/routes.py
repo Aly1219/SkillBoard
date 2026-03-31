@@ -5,7 +5,7 @@ from app.models import User, Poste, Competence, Entretien, Evaluation
 from datetime import datetime
 from sqlalchemy import delete
 import random
-import socket
+import os
 import app.calculs as calculs
 from app.db_helpers import (
     get_dashboard_data,
@@ -20,7 +20,7 @@ from app.db_helpers import (
 from app.validators import (
     validate_note_range,
 )
-from app.utils import format_date_fr, get_local_ip
+from app.utils import format_date_fr
 
 # ============================================================
 # TABLE DES MATIÈRES
@@ -45,17 +45,11 @@ bp = Blueprint('main', __name__)
 @login_required
 def home():
     data = get_dashboard_data()
-    
-    # Récupère l'IP locale de la machine pour construire l'URL de vote
-    try:
-        hostname = socket.gethostname()
-        ip_locale = get_local_ip()
-    except Exception:
-        ip_locale = '127.0.0.1'
-    
-    port = current_app.config.get('PORT', 5001)
-    url_vote = f"http://{ip_locale}:{port}/vote"
-    
+
+    server_ip   = os.getenv('SERVER_IP', '127.0.0.1')
+    server_port = os.getenv('FLASK_PORT', '5000')
+    url_vote    = f"http://{server_ip}:{server_port}/vote"
+
     return render_template('index.html',
                            user=current_user.username,
                            jobs=data['postes'],
@@ -400,8 +394,9 @@ def page_vote_rh(entretien_id):
     if not entretien:
         abort(404)
 
-    entretien.statut = "Attente_RH"
-    db.session.commit()
+    if entretien.statut == "Cree":
+        entretien.statut = "Attente_RH"
+        db.session.commit()
 
     return render_template('voteRH.html',
                            entretien=entretien,

@@ -29,10 +29,6 @@ def create_app():
 
     # --- Configuration ---
     app.config.from_object(Config)
-    app.config.update(
-        CACHE_TYPE="SimpleCache",
-        CACHE_DEFAULT_TIMEOUT=3600,
-    )
 
     # --- Extensions ---
     db.init_app(app)
@@ -45,10 +41,6 @@ def create_app():
 
     with app.app_context():
         db.create_all()
-
-        # Données initiales uniquement en développement
-        if app.config.get("ENV") == "development":
-            init_db(app)
 
         # Blueprint principal (routes web)
         from app.routes import bp as main_bp
@@ -72,7 +64,7 @@ def create_app():
 # ============================================================
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 
 # ============================================================

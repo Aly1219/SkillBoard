@@ -8,7 +8,7 @@ et garder les routes propres de tout accès direct à la base.
 # TABLE DES MATIÈRES
 # 1.  POSTES        get_all / get_by_id / get_by_name
 # 2.  COMPÉTENCES   get_all / get_by_id / get_by_name
-# 3.  ENTRETIENS    get_all / get_by_id / get_by_token
+# 3.  ENTRETIENS    get_all / get_by_id
 # 4.  UTILISATEURS  get_by_username / user_exists
 # ============================================================
 
@@ -67,13 +67,6 @@ def get_all_entretiens_sorted():
 def get_entretien_by_id(entretien_id):
     """Récupère un entretien par ID"""
     return db.session.get(Entretien, entretien_id)
-
-
-def entretien_by_token(token):
-    """Récupère un entretien par son token recruteur2 (lien externe)"""
-    return db.session.scalars(
-        select(Entretien).where(Entretien.token_recruteur2 == token)
-    ).first()
 
 
 def get_dashboard_data():

@@ -4,6 +4,7 @@ Teste l'interaction entre plusieurs composants (Auth, DB, Routes).
 """
 import pytest
 from datetime import date
+from sqlalchemy import select
 from app.extensions import db
 from app.models import User, Competence, Poste, Entretien, Evaluation
 
@@ -23,7 +24,7 @@ class TestCompleteWorkflow:
 
         assert response.status_code == 200
         with app.app_context():
-            user = User.query.filter_by(username='newadmin').first()
+            user = db.session.scalars(select(User).where(User.username == 'newadmin')).first()
             assert user is not None
             assert user.check_password('securepass123')
 
@@ -41,7 +42,7 @@ class TestCompleteWorkflow:
 
         assert response.status_code == 200
         with app.app_context():
-            comp = Competence.query.filter_by(nom='Python').first()
+            comp = db.session.scalars(select(Competence).where(Competence.nom == 'Python')).first()
             assert comp is not None
 
     def test_workflow_create_poste_with_competences(self, app, authenticated_client):
@@ -60,7 +61,7 @@ class TestCompleteWorkflow:
 
         assert response.status_code == 200
         with app.app_context():
-            poste = Poste.query.filter_by(nom='Développeur Python').first()
+            poste = db.session.scalars(select(Poste).where(Poste.nom == 'Développeur Python')).first()
             assert poste is not None
             assert len(poste.competences) == 2
 
@@ -81,7 +82,7 @@ class TestCompleteWorkflow:
 
         assert response.status_code == 200
         with app.app_context():
-            entretien = Entretien.query.filter_by(candidat_nom='Dupont').first()
+            entretien = db.session.scalars(select(Entretien).where(Entretien.candidat_nom == 'Dupont')).first()
             assert entretien is not None
             assert entretien.candidat_prenom == 'Jean'
             assert entretien.statut == 'Cree'
@@ -202,24 +203,36 @@ class TestAuthenticationFlow:
         assert authenticated_client.get('/').status_code == 302
 
 
-class TestConcurrentOperations:
-    """Opérations avec plusieurs clients simultanés"""
+class TestMonoAdmin:
+    """Vérification du design mono-administrateur"""
 
-    def test_multiple_users_independent_sessions(self, app):
-        """Deux utilisateurs ont des sessions indépendantes"""
-        client1 = app.test_client()
-        client2 = app.test_client()
-
+    def test_register_blocked_when_user_already_exists(self, app, client):
+        """La page d'inscription est bloquée si un utilisateur existe déjà (design mono-admin)"""
         with app.app_context():
-            u1 = User(username='user1')
-            u1.set_password('pass1')
-            u2 = User(username='user2')
-            u2.set_password('pass2')
-            db.session.add_all([u1, u2])
+            user = User(username='admin')
+            user.set_password('admin123')
+            db.session.add(user)
             db.session.commit()
 
-        client1.post('/login', data={'username': 'user1', 'password': 'pass1'})
-        client2.post('/login', data={'username': 'user2', 'password': 'pass2'})
+        # Un visiteur non connecté ne peut pas accéder à /register
+        response = client.get('/register', follow_redirects=False)
+        assert response.status_code == 302
+        assert '/login' in response.headers['Location']
 
-        assert client1.get('/').status_code == 200
-        assert client2.get('/').status_code == 200
+    def test_register_post_blocked_when_user_already_exists(self, app, client):
+        """Un POST sur /register est bloqué si un utilisateur existe déjà"""
+        with app.app_context():
+            user = User(username='admin')
+            user.set_password('admin123')
+            db.session.add(user)
+            db.session.commit()
+
+        response = client.post('/register', data={
+            'username': 'intrus',
+            'password': 'tentative123'
+        }, follow_redirects=False)
+
+        assert response.status_code == 302
+        with app.app_context():
+            intrus = db.session.scalars(select(User).where(User.username == 'intrus')).first()
+            assert intrus is None

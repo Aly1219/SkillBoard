@@ -46,13 +46,3 @@ def format_date_fr(date_entretien):
         return f"{date_obj.day} {_MOIS_FR[date_obj.month]} {date_obj.year}"
     except ValueError:
         return str(date_entretien)
-
-def get_local_ip():
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
-        ip = s.getsockname()[0]
-        s.close()
-        return ip
-    except Exception:
-        return '127.0.0.1'
